@@ -1,0 +1,13 @@
+{
+    "login": {
+        "discord" : "discord bot token",
+        "username" : "runescape username/email address",
+        "password" : "runescape password"
+    },
+    "configs": {
+        "channelID" : "discord channel id to chat in",
+        "botID" : "discord bot userid",
+        "adminID" : "discord admin id",
+        "chatType" : "can be 'friends' or 'clan' (runescape chat types)"
+    }
+}

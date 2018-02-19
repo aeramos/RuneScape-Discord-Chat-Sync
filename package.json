@@ -1,0 +1,27 @@
+{
+  "name": "rsdcs",
+  "version": "1.0.0",
+  "description": "A RuneScape-Discord chat bot that syncs the two chats",
+  "main": "rsdcs.js",
+  "scripts": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/aeramos/RuneScape-Discord-Chat-Sync.git"
+  },
+  "keywords": [],
+  "author": "Alejandro Ramos <alejandro.ramos.work@gmail.com>",
+  "license": "AGPL-3.0",
+  "bugs": {
+    "url": "https://github.com/aeramos/RuneScape-Discord-Chat-Sync/issues"
+  },
+  "homepage": "https://github.com/aeramos/RuneScape-Discord-Chat-Sync#readme",
+  "dependencies": {
+    "discord.js": "^11.1.0",
+    "puppeteer": "^0.9.0"
+  },
+  "peerDependencies": {},
+  "devDependencies": {},
+  "engines": {
+    "node": "^8.0.0"
+  }
+}
