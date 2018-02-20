@@ -34,37 +34,26 @@ async function click(frame, selector) {
     await x.click();
 }
 
-async function waitUntil(frame, selector, isGone) {
-    if (isGone) {
-        while (await frame.$(selector) != null) {}
-    } else {
-        while (await frame.$(selector) == null) {}
-    }
-}
-
 async function startup(page, browser) {
     lastIndex.number = -1;
     await console.log(getDateTime() + ": " + "Loaded page");
     let frame = await page.frames()[1];
 
-    await waitUntil(frame, "body:not(.initial-load)", false); // wait until the non-loading-screen screen appears
-
+    await frame.waitForSelector("body:not(.initial-load)");
     await console.log(getDateTime() + ": " + "Fully loaded page");
 
-    await click(frame, "input#username"); // click on the username field
-    await page.type(config.login.username); // type the username
-    await click(frame, "input#password"); // click on the password field
-    await page.type(config.login.password); // type the password
+    await frame.type("input#username", config.login.username); // type the username
+    await frame.type("input#password", config.login.password); // type the password
     await click(frame, "button.icon-login"); // click on the submit button
-    await waitUntil(frame, "div.modal-body.ng-scope", false); // wait until the save password dialog is on the screen
+    await frame.waitForSelector("div.modal-body.ng-scope");
     await console.log(getDateTime() + ": " + "Logged in");
 
     await click(frame, "a[ng-click='modalCancel()']"); // click on the 'no' button on the save password dialog
-    await waitUntil(frame, "div.modal-body.ng-scope", true); // wait until the save password dialog is off the screen
+    await frame.waitForSelector("div.modal-body.ng-scope", {"hidden":true});
     await console.log(getDateTime() + ": " + "In app");
 
     await click(frame, "li.all-chat"); // click on the chat tab
-    await waitUntil(frame, "section.chat.all-chat.ng-scope", false);
+    await frame.waitForSelector("section.chat.all-chat.ng-scope");
     await sleep(250); // wait for the slider to show it
     await console.log(getDateTime() + ": " + "In chat tab");
 
@@ -76,13 +65,12 @@ async function startup(page, browser) {
         await console.log(getDateTime() + ": " + "Not a valid chatType. must be 'clan' or 'friends'");
         await shutdown(browser, client);
     }
-    await waitUntil(frame, "input#message", false);
+    await frame.waitForSelector("input#message");
     await console.log(getDateTime() + ": " + "In " + config.configs.chatType + " chat tab");
     readyToSend = true;
     await console.log(getDateTime() + ": " + "Ready to chat!");
     return frame;
 }
-
 
 (async() => {
     await console.log(getDateTime() + ": " + "Started program");
@@ -98,24 +86,20 @@ async function startup(page, browser) {
     await setInterval(read, 500, browser, page, client, frame, lastIndex);
 
     client.on("message", msg => {
-        async function a() {
-            if (readyToSend) {
-                if (msg.channel.id == config.configs.channelID && msg.author.id !== config.configs.botID) {
-                    let author = msg.member.nickname;
-                    if (author == null) {
-                        author = msg.author.username;
-                    }
-                    // i will add a proper way to shutdown in the future
-                    if (msg.content === "shutdown" && config.configs.adminIDs.includes(msg.author.id)) {
-                        await shutdown(browser, client);
-                    } else {
-                        await send(page, msg.content, author, frame);
-                    }
+        if (readyToSend) {
+            if (msg.channel.id == config.configs.channelID && msg.author.id !== config.configs.botID) {
+                let author = msg.member.nickname;
+                if (author == null) {
+                    author = msg.author.username;
+                }
+                // i will add a proper way to shutdown in the future
+                if (msg.content === "shutdown" && config.configs.adminIDs.includes(msg.author.id)) {
+                    shutdown(browser, client);
+                } else {
+                    send(page, msg.content, author, frame);
                 }
             }
         }
-
-        a();
     })
 })();
 
@@ -126,8 +110,7 @@ async function send(page, message, author, frame) {
         await sleep(500); // wait a little between messages
         await send(page, message.substring((80 - author.length - 2), message.length), author, frame); // send the rest of the message
     } else {
-        await click(frame, "input#message"); // click on the message field
-        await page.type(author + ": " + message);
+        await frame.type("input#message", author + ": " + message);
         await click(frame, "input[type='submit']"); // click on the send button
     }
 }
@@ -182,7 +165,7 @@ async function read(browserr, pagee, clientt, frame, lastIndex) {
 
 async function error1(browserr, page, clientt, frame) {
     let startTime = await (new Date()).getTime();
-    waitUntil(frame, "div.modal-body.ng-scope", false); // wait until the connection lost message appears
+    await frame.waitForSelector("div.modal-body.ng-scope");
     if (((new Date()).getTime() - startTime) > 5000) { // if it was waiting for more than 5 seconds
         await page.screenshot({path: "./" + getDateTime() + ": " + "error1" + ".png"});
         await shutdown(browserr, clientt); // if it has waited too long, just shutdown
@@ -191,7 +174,6 @@ async function error1(browserr, page, clientt, frame) {
     await page.goto('http://www.runescape.com/companion/comapp.ws');
     await startup(page, browserr);
 }
-
 
 async function shutdown(browserr, clientt) {
     await console.log(getDateTime() + ": Shutting down!");
