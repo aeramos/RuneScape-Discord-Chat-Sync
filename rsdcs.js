@@ -43,6 +43,7 @@ async function waitUntil(frame, selector, isGone) {
 }
 
 async function startup(page, browser) {
+    lastIndex.number = -1;
     await console.log(getDateTime() + ": " + "Loaded page");
     let frame = await page.frames()[1];
 
@@ -174,7 +175,6 @@ async function read(browserr, pagee, clientt, frame, lastIndex) {
             await clientt.channels.get(config.configs.channelID).send(output[0]); // send the message in the discord
         } else if (output[0] === "null") {
             readyToSend = false;
-            await console.log(getDateTime() + ": " + output[0]); // send the error message
             await error1(browserr, pagee, clientt, frame);
         }
     }
