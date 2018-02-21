@@ -34,7 +34,7 @@ async function click(frame, selector) {
     await x.click();
 }
 
-async function startup(page, browser) {
+async function startup(page) {
     lastIndex.number = -1;
     await console.log(getDateTime() + ": " + "Loaded page");
     let frame = await page.frames()[1];
@@ -63,7 +63,7 @@ async function startup(page, browser) {
         await click(frame, "i.icon-friendschat:not(.icon)"); // click on the friends chat tab
     } else {
         await console.log(getDateTime() + ": " + "Not a valid chatType. must be 'clan' or 'friends'");
-        await shutdown(browser, client);
+        await shutdown();
     }
     await frame.waitForSelector("input#message");
     await console.log(getDateTime() + ": " + "In " + config.configs.chatType + " chat tab");
@@ -79,7 +79,7 @@ async function startup(page, browser) {
     let page = await browser.newPage();
     await page.goto('http://www.runescape.com/companion/comapp.ws');
 
-    let frame = await startup(page, browser);
+    let frame = await startup(page);
 
     // Everything is ready, so enable the chat features
     await read(browser, page, client, frame, lastIndex);
@@ -92,15 +92,10 @@ async function startup(page, browser) {
                 if (author == null) {
                     author = msg.author.username;
                 }
-                // i will add a proper way to shutdown in the future
-                if (msg.content === "shutdown" && config.configs.adminIDs.includes(msg.author.id)) {
-                    shutdown(browser, client);
-                } else {
-                    send(page, msg.content, author, frame);
-                }
+                send(page, msg.content, author, frame);
             }
         }
-    })
+    });
 })();
 
 async function send(page, message, author, frame) {
@@ -168,18 +163,21 @@ async function error1(browserr, page, clientt, frame) {
     await frame.waitForSelector("div.modal-body.ng-scope");
     if (((new Date()).getTime() - startTime) > 5000) { // if it was waiting for more than 5 seconds
         await page.screenshot({path: "./" + getDateTime() + ": " + "error1" + ".png"});
-        await shutdown(browserr, clientt); // if it has waited too long, just shutdown
+        await shutdown(); // if it has waited too long, just shutdown
     }
     await console.log(getDateTime() + ": " + "Restarting\n");
     await page.goto('http://www.runescape.com/companion/comapp.ws');
-    await startup(page, browserr);
+    await startup(page);
 }
 
-async function shutdown(browserr, clientt) {
-    await console.log(getDateTime() + ": Shutting down!");
-    await browserr.close();
-    await clientt.destroy();
-    await process.exit()
+process.on('SIGINT', () => {
+    shutdown()
+});
+
+function shutdown() {
+    console.log(getDateTime() + ": Shutting down!");
+    client.destroy();
+    process.exit();
 }
 
 function getDateTime() {

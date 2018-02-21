@@ -7,7 +7,6 @@
     "configs": {
         "channelID" : "discord channel id to chat in",
         "botID" : "discord bot userid",
-        "adminID" : "discord admin id",
         "chatType" : "can be 'friends' or 'clan' (runescape chat types)"
     }
 }
