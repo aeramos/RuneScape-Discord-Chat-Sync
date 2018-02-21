@@ -24,6 +24,7 @@ const config = require("./config.json");
 
 var readyToSend = false;
 var lastIndex = {number: -1};
+var intervalID;
 
 function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
@@ -34,12 +35,24 @@ async function click(frame, selector) {
     await x.click();
 }
 
-async function startup(page) {
+async function startup(browser, page) {
+    if (intervalID !== undefined) {
+        clearInterval(intervalID);
+    }
+
     lastIndex.number = -1;
+
+    await page.goto('http://www.runescape.com/companion/comapp.ws');
     await console.log(getDateTime() + ": " + "Loaded page");
     let frame = await page.frames()[1];
 
-    await frame.waitForSelector("body:not(.initial-load)");
+    try {
+        await frame.waitForSelector("body:not(.initial-load)", {timeout: 10000});
+    } catch (e) {
+        await console.log(getDateTime() + ": Took too long to load");
+        await restart(browser, page);
+        return;
+    }
     await console.log(getDateTime() + ": " + "Fully loaded page");
 
     await frame.type("input#username", config.login.username); // type the username
@@ -69,21 +82,10 @@ async function startup(page) {
     await console.log(getDateTime() + ": " + "In " + config.configs.chatType + " chat tab");
     readyToSend = true;
     await console.log(getDateTime() + ": " + "Ready to chat!");
-    return frame;
-}
-
-(async() => {
-    await console.log(getDateTime() + ": " + "Started program");
-    await client.login(config.login.discord);
-    const browser = await puppeteer.launch({args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-web-security', '--user-data-dir']});
-    let page = await browser.newPage();
-    await page.goto('http://www.runescape.com/companion/comapp.ws');
-
-    let frame = await startup(page);
 
     // Everything is ready, so enable the chat features
     await read(browser, page, client, frame, lastIndex);
-    await setInterval(read, 500, browser, page, client, frame, lastIndex);
+    intervalID = await setInterval(read, 500, browser, page, client, frame, lastIndex);
 
     client.on("message", msg => {
         if (readyToSend) {
@@ -96,6 +98,14 @@ async function startup(page) {
             }
         }
     });
+}
+
+(async() => {
+    await console.log(getDateTime() + ": " + "Started program");
+    await client.login(config.login.discord);
+    const browser = await puppeteer.launch({args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-web-security', '--user-data-dir']});
+    let page = await browser.newPage();
+    await startup(browser, page);
 })();
 
 async function send(page, message, author, frame) {
@@ -159,15 +169,19 @@ async function read(browserr, pagee, clientt, frame, lastIndex) {
 }
 
 async function error1(browserr, page, clientt, frame) {
-    let startTime = await (new Date()).getTime();
-    await frame.waitForSelector("div.modal-body.ng-scope");
-    if (((new Date()).getTime() - startTime) > 5000) { // if it was waiting for more than 5 seconds
+    await console.log(getDateTime() + ": Lost connection");
+    try {
+        await frame.waitForSelector("div.modal-body.ng-scope", {timeout: 5000});
+    } catch(e) {
         await page.screenshot({path: "./" + getDateTime() + ": " + "error1" + ".png"});
-        await shutdown(); // if it has waited too long, just shutdown
+        await console.log(getDateTime() + ": Unexpected error (error1)");
     }
-    await console.log(getDateTime() + ": " + "Restarting\n");
-    await page.goto('http://www.runescape.com/companion/comapp.ws');
-    await startup(page);
+    await restart(browserr, page);
+}
+
+function restart(browserr, page) {
+    console.log(getDateTime() + ": " + "Restarting...\n");
+    startup(browserr, page);
 }
 
 process.on('SIGINT', () => {
