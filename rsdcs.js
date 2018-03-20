@@ -25,6 +25,8 @@ const config = require("./config.json");
 var readyToSend = false;
 const lastIndex = {number: -1};
 
+var firstTime = true;
+
 (async() => {
     await console.log(getDateTime() + ": Started program");
     await client.login(config.login.discord);
@@ -101,17 +103,20 @@ async function startup(page) {
     }
     setTimeout(handleRead, 0);
 
-    client.on("message", message => {
-        if (readyToSend) {
-            if (message.channel.id == config.configs.channelID && message.author.id !== config.configs.botID) {
-                let author = message.member.nickname;
-                if (author == null) {
-                    author = message.author.username;
+    if (firstTime) {
+        firstTime = false;
+        client.on("message", message => {
+            if (readyToSend) {
+                if (message.channel.id == config.configs.channelID && message.author.id !== config.configs.botID) {
+                    let author = message.member.nickname;
+                    if (author == null) {
+                        author = message.author.username;
+                    }
+                    send(page, message.content, author, frame);
                 }
-                send(page, message.content, author, frame);
             }
-        }
-    });
+        });
+    }
 }
 
 
