@@ -1,20 +1,20 @@
-/**
-    This file is part of RuneScape-Discord Chat Sync
-    Copyright (C) 2018 Alejandro Ramos
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU Affero General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Affero General Public License for more details.
-
-    You should have received a copy of the GNU Affero General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
+/*
+ *  This file is part of RuneScape-Discord Chat Sync
+ *  Copyright (C) 2018 Alejandro Ramos
+ *
+ *  This program is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU Affero General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU Affero General Public License for more details.
+ *
+ *  You should have received a copy of the GNU Affero General Public License
+ *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
 
 const puppeteer = require("puppeteer");
 const Discord = require("discord.js");
@@ -80,7 +80,7 @@ async function startup(page) {
     await console.log(getDateTime() + ": Ready to chat!");
 
     // Everything is ready, so enable the chat features
-    async function handleRead(){
+    async function handleRead() {
         const output = await read(page, lastIndex);
         lastIndex.number = output[1];
         if (output[0] === "disconnected") {
@@ -101,6 +101,7 @@ async function startup(page) {
             setTimeout(handleRead, 600);
         }
     }
+
     setTimeout(handleRead, 0);
 
     if (firstTime) {
