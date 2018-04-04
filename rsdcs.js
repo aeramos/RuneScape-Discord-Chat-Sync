@@ -155,13 +155,20 @@ async function read(page, lastIndex) {
                         let authorElement = lastMessage.getElementsByClassName("author").item(0);
                         let messageElement = lastMessage.getElementsByTagName("p").item(0);
                         if (authorElement != null && messageElement != null) {
-                            let author = authorElement.innerHTML; // the username of the sender
+                            let author = authorElement.childNodes[0].nodeValue; // the username of the sender
                             author = author.substring(0, (author.length - 3)); // trim the " - " from the end of the author string
-                            let message = messageElement.innerHTML; // the actual content of the message
+                            let message = messageElement.childNodes[0].nodeValue; // the actual content of the message
 
                             let time = new Date();
                             time = ("0" + time.getUTCHours()).slice(-2) + ":" + ("0" + time.getUTCMinutes()).slice(-2) + ":" + ("0" + time.getUTCSeconds()).slice(-2);
-                            return [(time + ": " + author + ":\n```" + message + "```"), lastIndex.number];
+
+                            // Wrap the RuneScape message in a code block
+                            // Adapted from discord.js/src/structures/shared/CreateMessage.js (the code for when {code:true} is passed to TextChannel.send
+                            // Adapted from escapeMarkdown in discord.js/src/util/Util.js
+                            message = message.replace(/```/g, '`\u200b``');
+                            message = `\`\`\`${""}\n${message}\n\`\`\``;
+
+                            return [(time + ": " + author + ":\n" + message), lastIndex.number];
                         }
                     }
                 }
