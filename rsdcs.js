@@ -20,6 +20,11 @@ const puppeteer = require("puppeteer");
 const Discord = require("discord.js");
 const client = new Discord.Client();
 
+const readline = require("readline").createInterface({
+    input: process.stdin,
+    output: process.stdout
+});
+
 const config = require("./config.json");
 
 var readyToSend = false;
@@ -27,11 +32,13 @@ const lastIndex = {number: -1};
 
 var firstTime = true;
 
+var page; // only accessed globally from the readline handler
+
 (async() => {
     await console.log(getDateTime() + ": Started program");
     await client.login(config.login.discord);
     const browser = await puppeteer.launch({args: ["--no-sandbox", "--disable-setuid-sandbox", "--disable-web-security", "--user-data-dir"]});
-    let page = await browser.newPage();
+    page = await browser.newPage();
     await startup(page);
 })();
 
@@ -193,7 +200,28 @@ function shutdown() {
     process.exit();
 }
 
-process.on("SIGINT", () => {
+readline.on("line", (input) => {
+    switch (input) {
+        case "screenshot": {
+            if (page !== undefined) {
+                const name = getDateTime() + ".png";
+                page.screenshot({path: "./" + name});
+                console.log("Saved screenshot as: " + name);
+            } else {
+                console.log("Error: Can not take screenshot because browser is not ready yet");
+            }
+            break;
+        } case "shutdown": {
+            shutdown();
+            break;
+        } default: {
+            console.log("Unknown command: " + input);
+            break;
+        }
+    }
+});
+
+readline.on("close", () => {
     shutdown();
 });
 
