@@ -24,6 +24,7 @@ const readline = require("readline").createInterface({
     input: process.stdin,
     output: process.stdout
 });
+const fs = require("fs");
 
 const config = require("./config.json");
 
@@ -32,7 +33,9 @@ const lastIndex = {number: -1};
 
 var firstTime = true;
 
-var page; // only accessed globally from the readline handler
+// only accessed globally from the readline handler
+var page;
+var frame;
 
 (async() => {
     await console.log(getDateTime() + ": Started program");
@@ -47,7 +50,7 @@ async function startup(page) {
 
     await page.goto("http://www.runescape.com/companion/comapp.ws");
     await console.log(getDateTime() + ": Loaded page");
-    let frame = await page.frames()[1];
+    frame = await page.frames()[1];
 
     try {
         await frame.waitForSelector("body:not(.initial-load)", {timeout: 10000});
@@ -202,6 +205,26 @@ function shutdown() {
 
 readline.on("line", (input) => {
     switch (input) {
+        case "html": {
+            if (frame !== undefined) {
+                const name = getDateTime() + ".html";
+                frame.content().then((content) => {
+                    fs.writeFile("./" + name, content, (err) => {
+                        if (!err) {
+                            console.log("Saved HTML data as: " + name);
+                        } else {
+                            console.log(err);
+                        }
+                    });
+                }).catch((err) => {
+                    console.log("Unexpected Error");
+                    console.log(err + "\n");
+                });
+            } else {
+                console.log("Error: Can not get HTML data because browser is not ready yet");
+            }
+            break;
+        }
         case "screenshot": {
             if (page !== undefined) {
                 const name = getDateTime() + ".png";
