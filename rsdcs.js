@@ -151,6 +151,10 @@ async function read(page, lastIndex) {
                 if (lastIndex.number < list.length - 1) {
                     return list[++lastIndex.number];
                 } else {
+                    // if the bot restarted and the messages were cleared
+                    if (lastIndex >= list.length) {
+                        lastIndex.number = list.length - 1; // make it seem like the bot has completed the message queue (put the bot back on track)
+                    }
                     return null;
                 }
             }
