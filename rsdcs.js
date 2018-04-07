@@ -28,6 +28,7 @@ const fs = require("fs");
 
 const config = require("./config.json");
 
+var on = true;
 var readyToSend = false;
 const lastIndex = {number: -1};
 
@@ -90,6 +91,7 @@ async function startup(page) {
     await console.log(getDateTime() + ": Ready to chat!");
 
     // Everything is ready, so enable the chat features
+    on = true;
     async function handleRead() {
         const output = await read(page, lastIndex);
         lastIndex.number = output[1];
@@ -106,9 +108,17 @@ async function startup(page) {
             await restart(page);
         } else if (output[0] !== "clear") {
             await client.channels.get(config.configs.channelID).send(output[0]); // send the message in the discord
-            setTimeout(handleRead, 0);
+            if (on) {
+                setTimeout(handleRead, 0);
+            } else {
+                restart(page);
+            }
         } else {
-            setTimeout(handleRead, 600);
+            if (on) {
+                setTimeout(handleRead, 600);
+            } else {
+                restart(page);
+            }
         }
     }
 
@@ -225,17 +235,23 @@ readline.on("line", (input) => {
                     console.log(err + "\n");
                 });
             } else {
-                console.log("Error: Can not get HTML data because browser is not ready yet");
+                console.log("Error: Can not get HTML data because the browser is not ready yet");
             }
             break;
-        }
-        case "screenshot": {
+        } case "restart": {
+            if (page !== undefined) {
+                on = false;
+            } else {
+                console.log("Error: Can not restart because the browser is not ready yet");
+            }
+            break;
+        } case "screenshot": {
             if (page !== undefined) {
                 const name = getDateTime() + ".png";
                 page.screenshot({path: "./" + name});
                 console.log("Saved screenshot as: " + name);
             } else {
-                console.log("Error: Can not take screenshot because browser is not ready yet");
+                console.log("Error: Can not take screenshot because the browser is not ready yet");
             }
             break;
         } case "shutdown": {
