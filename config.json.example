@@ -7,6 +7,8 @@
     "configs": {
         "channelID" : "discord channel id to chat in",
         "botID" : "discord bot userid",
-        "chatType" : "can be 'friends' or 'clan' (runescape chat types)"
+        "chatType" : "can be 'friends' or 'clan' (runescape chat types)",
+        "htmlDumpDirectory" : "absolute or relative path, can be the same as screenshotDirectory",
+        "screenshotDirectory" : "absolute or relative path, can be the same as htmlDumpDirectory"
     }
 }

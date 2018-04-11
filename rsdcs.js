@@ -233,7 +233,7 @@ readline.on("line", (input) => {
             if (frame !== undefined) {
                 const name = getDateTime() + ".html";
                 frame.content().then((content) => {
-                    fs.writeFile("./" + name, content, (err) => {
+                    fs.writeFile(config.configs.htmlDumpDirectory + name, content, (err) => {
                         if (!err) {
                             console.log("Saved HTML data as: " + name);
                         } else {
@@ -258,7 +258,7 @@ readline.on("line", (input) => {
         } case "screenshot": {
             if (page !== undefined) {
                 const name = getDateTime() + ".png";
-                page.screenshot({path: "./" + name});
+                page.screenshot({path: config.configs.screenshotDirectory + name});
                 console.log("Saved screenshot as: " + name);
             } else {
                 console.log("Error: Can not take screenshot because the browser is not ready yet");
