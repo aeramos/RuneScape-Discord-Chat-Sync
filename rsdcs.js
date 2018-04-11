@@ -47,97 +47,107 @@ var frame;
 })();
 
 async function startup(page) {
+    async function waitForSelector(selector, timeout, hidden) {
+        try {
+            await frame.waitForSelector(selector, {timeout: timeout, hidden: hidden});
+            return true;
+        } catch (e) {
+            await console.log(getDateTime() + ": Took too long to load");
+            return false;
+        }
+    }
+
     lastIndex.number = -1;
 
     await page.goto("http://www.runescape.com/companion/comapp.ws");
     await console.log(getDateTime() + ": Loaded page");
     frame = await page.frames()[1];
 
-    try {
-        await frame.waitForSelector("body:not(.initial-load)", {timeout: 10000});
-    } catch (e) {
-        await console.log(getDateTime() + ": Took too long to load");
-        await restart(page);
-        return;
-    }
-    await console.log(getDateTime() + ": Fully loaded page");
+    if (await waitForSelector("body:not(.initial-load)", 10000, false)) {
+        await console.log(getDateTime() + ": Fully loaded page");
 
-    await frame.type("input#username", config.login.username); // type the username
-    await frame.type("input#password", config.login.password); // type the password
-    await frame.click("button.icon-login"); // click on the submit button
-    await frame.waitForSelector("div.modal-body.ng-scope");
-    await console.log(getDateTime() + ": Logged in");
+        await frame.type("input#username", config.login.username); // type the username
+        await frame.type("input#password", config.login.password); // type the password
+        await frame.click("button.icon-login"); // click on the submit button
+        if (await waitForSelector("div.modal-body.ng-scope", 10000, false)) {
+            await console.log(getDateTime() + ": Logged in");
 
-    await frame.click("a[ng-click='modalCancel()']"); // click on the "no" button on the save password dialog
-    await frame.waitForSelector("div.modal-body.ng-scope", {"hidden": true});
-    await console.log(getDateTime() + ": In app");
+            await frame.click("a[ng-click='modalCancel()']"); // click on the "no" button on the save password dialog
+            if (await waitForSelector("div.modal-body.ng-scope", 5000, true)) {
+                await console.log(getDateTime() + ": In app");
 
-    await frame.click("li.all-chat"); // click on the chat tab
-    await frame.waitForSelector("section.chat.all-chat.ng-scope");
-    await sleep(250); // wait for the slider to show it
-    await console.log(getDateTime() + ": In chat tab");
+                await frame.click("li.all-chat"); // click on the chat tab
+                if (await waitForSelector("section.chat.all-chat.ng-scope", 5000, false)) {
+                    await sleep(250); // wait for the slider to show it
+                    await console.log(getDateTime() + ": In chat tab");
 
-    if (config.configs.chatType === "clan") {
-        await frame.click("i.icon-clanchat:not(.icon)"); // click on the clan chat tab
-    } else if (config.configs.chatType === "friends") {
-        await frame.click("i.icon-friendschat:not(.icon)"); // click on the friends chat tab
-    } else {
-        await console.log(getDateTime() + ": Not a valid chat type. must be \"clan\" or \"friends\"");
-        await shutdown();
-    }
-    await frame.waitForSelector("input#message");
-    await console.log(getDateTime() + ": In " + config.configs.chatType + " chat tab");
-    readyToSend = true;
-    await console.log(getDateTime() + ": Ready to chat!");
+                    if (config.configs.chatType === "clan") {
+                        await frame.click("i.icon-clanchat:not(.icon)"); // click on the clan chat tab
+                    } else if (config.configs.chatType === "friends") {
+                        await frame.click("i.icon-friendschat:not(.icon)"); // click on the friends chat tab
+                    } else {
+                        await console.log(getDateTime() + ": Not a valid chat type. must be \"clan\" or \"friends\"");
+                        await shutdown();
+                    }
+                    if (await waitForSelector("input#message", 10000, false)) {
+                        await console.log(getDateTime() + ": In " + config.configs.chatType + " chat tab");
+                        readyToSend = true;
+                        await console.log(getDateTime() + ": Ready to chat!");
 
-    // Everything is ready, so enable the chat features
-    on = true;
-    async function handleRead() {
-        const output = await read(page, lastIndex);
-        lastIndex.number = output[1];
-        if (output[0] === "disconnected") {
-            readyToSend = false;
+                        // Everything is ready, so enable the chat features
+                        on = true;
 
-            await console.log(getDateTime() + ": Lost connection");
-            try {
-                await frame.waitForSelector("div.modal-body.ng-scope", {timeout: 5000});
-            } catch (e) {
-                await console.log(getDateTime() + ": Unexpected error, screenshotting");
-                await page.screenshot({path: "./" + getDateTime() + ": error1" + ".png"});
-            }
-            await restart(page);
-        } else if (output[0] !== "clear") {
-            await client.channels.get(config.configs.channelID).send(output[0]); // send the message in the discord
-            if (on) {
-                setTimeout(handleRead, 0);
-            } else {
-                restart(page);
-            }
-        } else {
-            if (on) {
-                setTimeout(handleRead, 600);
-            } else {
-                restart(page);
+                        async function handleRead() {
+                            const output = await read(page, lastIndex);
+                            lastIndex.number = output[1];
+                            if (output[0] === "disconnected") {
+                                readyToSend = false;
+
+                                await console.log(getDateTime() + ": Lost connection");
+                                if (!await waitForSelector("div.modal-body.ng-scope", 5000, false)) {
+                                    await console.log(getDateTime() + ": Unexpected error, screenshotting");
+                                    await page.screenshot({path: "./" + getDateTime() + ": error1" + ".png"});
+                                }
+                                await restart(page);
+                            } else if (output[0] !== "clear") {
+                                await client.channels.get(config.configs.channelID).send(output[0]); // send the message in the discord
+                                if (on) {
+                                    setTimeout(handleRead, 0);
+                                } else {
+                                    restart(page);
+                                }
+                            } else {
+                                if (on) {
+                                    setTimeout(handleRead, 600);
+                                } else {
+                                    restart(page);
+                                }
+                            }
+                        }
+
+                        setTimeout(handleRead, 0);
+
+                        if (firstTime) {
+                            firstTime = false;
+                            client.on("message", message => {
+                                if (readyToSend) {
+                                    if (message.channel.id == config.configs.channelID && message.author.id !== config.configs.botID) {
+                                        let author = message.member.nickname;
+                                        if (author == null) {
+                                            author = message.author.username;
+                                        }
+                                        send(page, message.content, author, frame);
+                                    }
+                                }
+                            });
+                        }
+                        return;
+                    }
+                }
             }
         }
     }
-
-    setTimeout(handleRead, 0);
-
-    if (firstTime) {
-        firstTime = false;
-        client.on("message", message => {
-            if (readyToSend) {
-                if (message.channel.id == config.configs.channelID && message.author.id !== config.configs.botID) {
-                    let author = message.member.nickname;
-                    if (author == null) {
-                        author = message.author.username;
-                    }
-                    send(page, message.content, author, frame);
-                }
-            }
-        });
-    }
+    await restart(page);
 }
 
 
