@@ -10,6 +10,6 @@
         "chatType" : "can be 'friends' or 'clan' (runescape chat types)",
         "htmlDumpDirectory" : "absolute or relative path, can be the same as others",
         "screenshotDirectory" : "absolute or relative path, can be the same as others",
-        "errorDirectory" : "absolute or relative path, can the same as others"
+        "errorDirectory" : "absolute or relative path, can be the same as others"
     }
 }
