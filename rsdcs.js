@@ -105,8 +105,20 @@ async function startup(page) {
 
                                 await console.log(getDateTime() + ": Lost connection");
                                 if (!await waitForSelector("div.modal-body.ng-scope", 5000, false)) {
-                                    await console.log(getDateTime() + ": Unexpected error, screenshotting");
-                                    await page.screenshot({path: "./" + getDateTime() + ": error1" + ".png"});
+                                    const dateTime = getDateTime();
+                                    await console.log(dateTime + ": Unexpected error, dumping data");
+
+                                    await fs.writeFile(config.configs.errorDirectory + dateTime + ".html", await frame.content(), (err) => {
+                                        if (!err) {
+                                            console.log(dateTime + ": Saved HTML data as: " + dateTime + ".html");
+                                        } else {
+                                            console.log(dateTime + ": Error saving HTML data:");
+                                            console.log(err);
+                                        }
+                                    });
+
+                                    await page.screenshot({path: config.configs.errorDirectory + dateTime + ": error1" + ".png"});
+                                    await console.log(dateTime + ": Saved screenshot as: " + dateTime + ".png");
                                 }
                                 await restart(page);
                             } else if (output[0] !== "clear") {

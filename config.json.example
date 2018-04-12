@@ -8,7 +8,8 @@
         "channelID" : "discord channel id to chat in",
         "botID" : "discord bot userid",
         "chatType" : "can be 'friends' or 'clan' (runescape chat types)",
-        "htmlDumpDirectory" : "absolute or relative path, can be the same as screenshotDirectory",
-        "screenshotDirectory" : "absolute or relative path, can be the same as htmlDumpDirectory"
+        "htmlDumpDirectory" : "absolute or relative path, can be the same as others",
+        "screenshotDirectory" : "absolute or relative path, can be the same as others",
+        "errorDirectory" : "absolute or relative path, can the same as others"
     }
 }
