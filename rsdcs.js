@@ -148,7 +148,72 @@ async function startup(page) {
                                         if (author == null) {
                                             author = message.author.username;
                                         }
-                                        send(page, message.content, author, frame);
+                                        let original = message.content;
+                                        let clean = "";
+                                        // if any of discord's autocompleted emojis are in the message
+                                        for (let i = 0; i < original.length; i++) {
+                                            switch (original.charAt(i)) {
+                                                case "\u2764": { // ❤
+                                                    clean += "<3";
+                                                    break;
+                                                }
+                                                case "\ud83d": { // separate switch statement for emojis with 16 bits
+                                                    switch (original.charAt(++i)) {
+                                                        case "\udc94": { // 💔
+                                                            clean += "</3";
+                                                            break;
+                                                        }
+                                                        case "\ude22": { // 😢
+                                                            clean += ":'(";
+                                                            break;
+                                                        }
+                                                        case "\ude17": { // 😗
+                                                            clean += ":*";
+                                                            break;
+                                                        }
+                                                        case "\ude03": { // 😃
+                                                            clean += ":)";
+                                                            break;
+                                                        }
+                                                        case "\ude04": { // 😄
+                                                            clean += ":D";
+                                                            break;
+                                                        }
+                                                        case "\ude09": { // 😉
+                                                            clean += ";)";
+                                                            break;
+                                                        }
+                                                        case "\ude10": { // 😐
+                                                            clean += ":|";
+                                                            break;
+                                                        }
+                                                        case "\ude2e": { // 😮
+                                                            clean += ":o";
+                                                            break;
+                                                        }
+                                                        case "\ude20": { // 😠
+                                                            clean += ">:(";
+                                                            break;
+                                                        }
+                                                        case "\ude26": { // 😦
+                                                            clean += ":(";
+                                                            break;
+                                                        }
+                                                        case "\ude15": { // 😕
+                                                            clean += ":/";
+                                                            break;
+                                                        }
+                                                    }
+                                                    break;
+                                                }
+                                                default: {
+                                                    clean += original.charAt(i);
+                                                    break;
+                                                }
+                                            }
+                                        }
+
+                                        send(page, clean, author, frame);
                                     }
                                 }
                             });
