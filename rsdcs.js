@@ -31,6 +31,7 @@ const config = require("./config.json");
 var on = true;
 var readyToSend = false;
 const lastIndex = {number: -1};
+const messageQueue = [[],[]];
 
 var firstTime = true;
 
@@ -213,7 +214,15 @@ async function startup(page) {
                                             }
                                         }
 
-                                        send(page, clean, author, frame);
+                                        // add the new messages to the end of the queue
+                                        messageQueue[0].push(clean);
+                                        messageQueue[1].push(author);
+
+                                        // if the queue is already sending, don't call send again
+                                        // this will probably break when the bot restarts
+                                        if (messageQueue[0].length === 1) {
+                                            send(page, frame);
+                                        }
                                     }
                                 }
                             });
@@ -228,15 +237,47 @@ async function startup(page) {
 }
 
 
-async function send(page, message, author, frame) {
-    // if the message is too long to send in runescape
-    if ((message.length + author.length + 2) > 80) {
-        await send(page, message.substring(0, (80 - author.length - 2)), author, frame); // send the beginning of the message
-        await sleep(500); // wait a little between messages
-        await send(page, message.substring((80 - author.length - 2), message.length), author, frame); // send the rest of the message
-    } else {
-        await frame.type("input#message", author + ": " + message);
-        await frame.click("input[type='submit']"); // click on the send button
+async function send(page, frame) {
+    while (messageQueue[0].length > 0) {
+        if (readyToSend) {
+            // if the message is too long to send in runescape (80 character limit)
+            if (messageQueue[0][0].length + messageQueue[1][0].length + 2 > 80) {
+                messageQueue[0].unshift(messageQueue[0][0].substring(0, (80 - messageQueue[1][0].length - 2)));
+                messageQueue[1].unshift(messageQueue[1][0]);
+                messageQueue[0][1] = messageQueue[0][1].substring((80 - messageQueue[1][0].length - 2), messageQueue[0][1].length);
+            } else {
+                const startNumber = await page.evaluate(() => {
+                    return window.frames[0].document.getElementsByClassName("content push-top-double push-bottom-double").item(0).getElementsByTagName("ul").item(0).querySelectorAll("li.message.clearfix.ng-scope.my-message").length;
+                });
+
+                await frame.type("input#message", messageQueue[1][0] + ": " + messageQueue[0][0]);
+                await frame.click("input[type='submit']"); // click on the send button
+
+                // wait up to two seconds for the message to send before resending
+                const startTime = Date.now();
+                while (Date.now() - startTime < 2000) {
+                    if (readyToSend) {
+                        // checks if the message was actually sent
+                        const currentNumber = await page.evaluate(() => {
+                            return window.frames[0].document.getElementsByClassName("content push-top-double push-bottom-double").item(0).getElementsByTagName("ul").item(0).querySelectorAll("li.message.clearfix.ng-scope.my-message").length;
+                        });
+
+                        // the message sent successfully, so it can be removed from the queue
+                        if (startNumber < currentNumber) {
+                            messageQueue[0].shift();
+                            messageQueue[1].shift();
+                            break;
+                        }
+                    } else {
+                        messageQueue[0].length = 0;
+                        messageQueue[1].length = 0;
+                    }
+                }
+            }
+        } else {
+            messageQueue[0].length = 0;
+            messageQueue[1].length = 0;
+        }
     }
 }
 
