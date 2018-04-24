@@ -70,7 +70,7 @@ async function startup(page) {
         await frame.type("input#username", config.login.username); // type the username
         await frame.type("input#password", config.login.password); // type the password
         await frame.click("button.icon-login"); // click on the submit button
-        if (await waitForSelector("div.modal-body.ng-scope", 10000, false)) {
+        if (await waitForSelector("div.modal-body.ng-scope", 15000, false)) {
             await console.log(getDateTime() + ": Logged in");
 
             await frame.click("a[ng-click='modalCancel()']"); // click on the "no" button on the save password dialog
@@ -78,7 +78,7 @@ async function startup(page) {
                 await console.log(getDateTime() + ": In app");
 
                 await frame.click("li.all-chat"); // click on the chat tab
-                if (await waitForSelector("section.chat.all-chat.ng-scope", 5000, false)) {
+                if (await waitForSelector("section.chat.all-chat.ng-scope", 10000, false)) {
                     await sleep(250); // wait for the slider to show it
                     await console.log(getDateTime() + ": In chat tab");
 
