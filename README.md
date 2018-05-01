@@ -18,6 +18,32 @@ a conversation, or to keep chat logs.
 It is officially hosted on
 [GitHub](https://github.com/aeramos/RuneScape-Discord-Chat-Sync).
 
+### FAQ
+* Since the bot is licensed under the AGPL-3.0, do I have to distribute source
+to people who use it when I run it?
+    * Yes. All users of the bot **must** be able to get a copy of the source
+    code. The license states that:
+
+    > "If your software can interact with users remotely through a computer
+    network, you should also make sure that it provides a way for users to get
+    its source."
+
+    > "Notwithstanding any other provision of this License, if you modify the
+    Program, your modified version must prominently offer all users interacting
+    with it remotely through a computer network (if your version supports such
+    interaction) an opportunity to receive the Corresponding Source of your
+    version by providing access to the Corresponding Source from a network
+    server at no charge, through some standard or customary means of
+    facilitating copying of software."
+
+    An example of this being done is if the bot sends a message when it starts
+    and upon a user's request that allows the user to get the license
+    information and the source code.
+
+    More information can be found in the COPYING file. Please refer to it for
+    any licensing issues and in the event of a contradiction between the text
+    in the README and the text in COPYING, refer to the text in COPYING.
+
 ### MAINTAINERS
 
  * [Alejandro Ramos](https://github.com/aeramos)
