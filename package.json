@@ -1,6 +1,6 @@
 {
   "name": "rsdcs",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "description": "A RuneScape-Discord chat bot that syncs the two chats",
   "main": "rsdcs.js",
   "scripts": {},
