@@ -34,6 +34,7 @@ const lastIndex = {number: -1};
 const messageQueue = [[],[]];
 
 var firstTime = true;
+const welcome = "RuneScape-Discord Chat Sync now running.\nSource code and license info (AGPL-3.0+) can be found at https://github.com/aeramos/RuneScape-Discord-Chat-Sync.";
 
 // only accessed globally from the readline handler
 var page;
@@ -42,6 +43,7 @@ var frame;
 (async() => {
     await console.log(getDateTime() + ": Started program");
     await client.login(config.login.discord);
+    await client.channels.get(config.configs.channelID).send(welcome);
     const browser = await puppeteer.launch({args: ["--no-sandbox", "--disable-setuid-sandbox", "--disable-web-security", "--user-data-dir"]});
     page = await browser.newPage();
     await startup(page);
