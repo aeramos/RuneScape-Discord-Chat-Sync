@@ -19,8 +19,9 @@ It is officially hosted on
 [GitHub](https://github.com/aeramos/RuneScape-Discord-Chat-Sync).
 
 ### FAQ
-* Since the bot is licensed under the AGPL-3.0, do I have to distribute source
-to people who use it when I run it?
+* Since the bot is licensed under the
+[GNU AGPL-3.0+](https://www.gnu.org/licenses/agpl-3.0.html), do I have to
+distribute source code to people who use it when I run it?
     * Yes. All users of the bot **must** be able to get a copy of the source
     code. The license states that:
 
@@ -51,7 +52,7 @@ to people who use it when I run it?
 ### LICENSE
 
 This program is licensed under the
-[GNU AGPLv3](https://gnu.org/licenses/agpl-3.0.en.html).
+[GNU AGPL-3.0+](https://www.gnu.org/licenses/agpl-3.0.html).
 More information can be found in the COPYING file.
 
 ------------------------------
