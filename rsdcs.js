@@ -108,7 +108,7 @@ async function startup(page) {
 
                                 await console.log(getDateTime() + ": Lost connection");
                                 if (!await waitForSelector("div.modal-body.ng-scope", 5000, false)) {
-                                    const dateTime = getDateTime();
+                                    const dateTime = getDateTime().replace(/:/g, ".");
                                     await console.log(dateTime + ": Unexpected error, dumping data");
 
                                     await fs.writeFile(config.configs.errorDirectory + dateTime + ".html", await frame.content(), (err) => {
@@ -351,7 +351,7 @@ readline.on("line", (input) => {
     switch (input) {
         case "html": {
             if (frame !== undefined) {
-                const name = getDateTime() + ".html";
+                const name = getDateTime().replace(/:/g, ".") + ".html";
                 frame.content().then((content) => {
                     fs.writeFile(config.configs.htmlDumpDirectory + name, content, (err) => {
                         if (!err) {
@@ -377,7 +377,7 @@ readline.on("line", (input) => {
             break;
         } case "screenshot": {
             if (page !== undefined) {
-                const name = getDateTime() + ".png";
+                const name = getDateTime().replace(/:/g, ".") + ".png";
                 page.screenshot({path: config.configs.screenshotDirectory + name});
                 console.log("Saved screenshot as: " + name);
             } else {
