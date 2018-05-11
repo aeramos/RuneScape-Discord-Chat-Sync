@@ -33,7 +33,6 @@ var readyToSend = false;
 const lastIndex = {number: -1};
 const messageQueue = [[],[]];
 
-var firstTime = true;
 const welcome = "RuneScape-Discord Chat Sync now running.\nSource code and license info (AGPL-3.0+) can be found at https://github.com/aeramos/RuneScape-Discord-Chat-Sync.";
 
 // only accessed globally from the readline handler
@@ -142,93 +141,91 @@ async function startup(page) {
 
                         setTimeout(handleRead, 0);
 
-                        if (firstTime) {
-                            firstTime = false;
-                            client.on("message", message => {
-                                if (readyToSend) {
-                                    if (message.channel.id == config.configs.channelID && message.author.id !== config.configs.botID) {
-                                        let author = message.member.nickname;
-                                        if (author == null) {
-                                            author = message.author.username;
-                                        }
-                                        let original = message.content;
-                                        let clean = "";
-                                        // if any of discord's autocompleted emojis are in the message
-                                        for (let i = 0; i < original.length; i++) {
-                                            switch (original.charAt(i)) {
-                                                case "\u2764": { // ❤
-                                                    clean += "<3";
-                                                    break;
-                                                }
-                                                case "\ud83d": { // separate switch statement for emojis with 16 bits
-                                                    switch (original.charAt(++i)) {
-                                                        case "\udc94": { // 💔
-                                                            clean += "</3";
-                                                            break;
-                                                        }
-                                                        case "\ude22": { // 😢
-                                                            clean += ":'(";
-                                                            break;
-                                                        }
-                                                        case "\ude17": { // 😗
-                                                            clean += ":*";
-                                                            break;
-                                                        }
-                                                        case "\ude03": { // 😃
-                                                            clean += ":)";
-                                                            break;
-                                                        }
-                                                        case "\ude04": { // 😄
-                                                            clean += ":D";
-                                                            break;
-                                                        }
-                                                        case "\ude09": { // 😉
-                                                            clean += ";)";
-                                                            break;
-                                                        }
-                                                        case "\ude10": { // 😐
-                                                            clean += ":|";
-                                                            break;
-                                                        }
-                                                        case "\ude2e": { // 😮
-                                                            clean += ":o";
-                                                            break;
-                                                        }
-                                                        case "\ude20": { // 😠
-                                                            clean += ">:(";
-                                                            break;
-                                                        }
-                                                        case "\ude26": { // 😦
-                                                            clean += ":(";
-                                                            break;
-                                                        }
-                                                        case "\ude15": { // 😕
-                                                            clean += ":/";
-                                                            break;
-                                                        }
+                        client.removeAllListeners();
+                        client.on("message", message => {
+                            if (readyToSend) {
+                                if (message.channel.id == config.configs.channelID && message.author.id !== config.configs.botID) {
+                                    let author = message.member.nickname;
+                                    if (author == null) {
+                                        author = message.author.username;
+                                    }
+                                    let original = message.content;
+                                    let clean = "";
+                                    // if any of discord's autocompleted emojis are in the message
+                                    for (let i = 0; i < original.length; i++) {
+                                        switch (original.charAt(i)) {
+                                            case "\u2764": { // ❤
+                                                clean += "<3";
+                                                break;
+                                            }
+                                            case "\ud83d": { // separate switch statement for emojis with 16 bits
+                                                switch (original.charAt(++i)) {
+                                                    case "\udc94": { // 💔
+                                                        clean += "</3";
+                                                        break;
                                                     }
-                                                    break;
+                                                    case "\ude22": { // 😢
+                                                        clean += ":'(";
+                                                        break;
+                                                    }
+                                                    case "\ude17": { // 😗
+                                                        clean += ":*";
+                                                        break;
+                                                    }
+                                                    case "\ude03": { // 😃
+                                                        clean += ":)";
+                                                        break;
+                                                    }
+                                                    case "\ude04": { // 😄
+                                                        clean += ":D";
+                                                        break;
+                                                    }
+                                                    case "\ude09": { // 😉
+                                                        clean += ";)";
+                                                        break;
+                                                    }
+                                                    case "\ude10": { // 😐
+                                                        clean += ":|";
+                                                        break;
+                                                    }
+                                                    case "\ude2e": { // 😮
+                                                        clean += ":o";
+                                                        break;
+                                                    }
+                                                    case "\ude20": { // 😠
+                                                        clean += ">:(";
+                                                        break;
+                                                    }
+                                                    case "\ude26": { // 😦
+                                                        clean += ":(";
+                                                        break;
+                                                    }
+                                                    case "\ude15": { // 😕
+                                                        clean += ":/";
+                                                        break;
+                                                    }
                                                 }
-                                                default: {
-                                                    clean += original.charAt(i);
-                                                    break;
-                                                }
+                                                break;
+                                            }
+                                            default: {
+                                                clean += original.charAt(i);
+                                                break;
                                             }
                                         }
+                                    }
 
-                                        // add the new messages to the end of the queue
-                                        messageQueue[0].push(clean);
-                                        messageQueue[1].push(author);
+                                    // add the new messages to the end of the queue
+                                    messageQueue[0].push(clean);
+                                    messageQueue[1].push(author);
 
-                                        // if the queue is already sending, don't call send again
-                                        // this will probably break when the bot restarts
-                                        if (messageQueue[0].length === 1) {
-                                            send(page, frame);
-                                        }
+                                    // if the queue is already sending, don't call send again
+                                    // this will probably break when the bot restarts
+                                    if (messageQueue[0].length === 1) {
+                                        send(page, frame);
                                     }
                                 }
-                            });
-                        }
+                            }
+                        });
                         return;
                     }
                 }
@@ -237,7 +234,6 @@ async function startup(page) {
     }
     await restart(page);
 }
-
 
 async function send(page, frame) {
     while (messageQueue[0].length > 0) {
