@@ -20,10 +20,24 @@ const RuneScapeSync = require("./RuneScapeSync");
 const Queue = require("./Queue");
 const DiscordSync = require("./DiscordSync");
 
+const runeScapePrefix = "~";
+const discordPrefix = "~";
+
 let toRuneScapeQueue = new Queue(RuneScapeSync.toQueueListener);
 let fromRuneScapeQueue = new Queue(() => {
     while (fromRuneScapeQueue.length() > 0) {
-        toDiscordQueue.push(fromRuneScapeQueue.getMessage(0), fromRuneScapeQueue.getAuthor(0));
+        switch(fromRuneScapeQueue.getMessage(0)) {
+            case runeScapePrefix + "help":
+            case runeScapePrefix + "info":
+            case runeScapePrefix + "license":
+            case runeScapePrefix + "source":
+                toRuneScapeQueue.push("RuneScape-Discord Chat Sync is a free program licensed under the GNU AGPL-3.0", "");
+                toRuneScapeQueue.push("Help, source code, and full license info can be found on GitHub", "");
+                break;
+            default:
+                toDiscordQueue.push(fromRuneScapeQueue.getMessage(0), fromRuneScapeQueue.getAuthor(0));
+                break;
+        }
         fromRuneScapeQueue.shift();
     }
 });
@@ -31,7 +45,18 @@ let fromRuneScapeQueue = new Queue(() => {
 let toDiscordQueue = new Queue(DiscordSync.toQueueListener);
 let fromDiscordQueue = new Queue(() => {
     while (fromDiscordQueue.length() > 0) {
-        toRuneScapeQueue.push(fromDiscordQueue.getMessage(0), fromDiscordQueue.getAuthor(0));
+        switch (fromDiscordQueue.getMessage(0)) {
+            case discordPrefix + "help":
+            case discordPrefix + "info":
+            case discordPrefix + "license":
+            case discordPrefix + "source":
+                toDiscordQueue.push("RuneScape-Discord Chat Sync is a free program licensed under the GNU AGPL-3.0\n" +
+                    "Help, source code, and full license info can be found on GitHub (https://github.com/aeramos/RuneScape-Discord-Chat-Sync)", "");
+                break;
+            default:
+                toRuneScapeQueue.push(fromDiscordQueue.getMessage(0), fromDiscordQueue.getAuthor(0));
+                break;
+        }
         fromDiscordQueue.shift();
     }
 });

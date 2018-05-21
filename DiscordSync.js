@@ -24,8 +24,6 @@ const config = require("./config.json");
 
 let readyToSend = true;
 
-const welcome = "RuneScape-Discord Chat Sync now running.\nSource code and license info (AGPL-3.0+) can be found at https://github.com/aeramos/RuneScape-Discord-Chat-Sync.";
-
 let toQueue;
 let fromQueue;
 let sending = false;
@@ -47,7 +45,7 @@ async function send() {
                 message = message.replace(/```/g, "`\u200b``");
                 message = `\`\`\`${""}\n${message}\n\`\`\``;
 
-                await client.channels.get(config.configs.channelID).send(time + ": " + author + ":\n" + message); // send the message in the discord
+                await client.channels.get(config.configs.channelID).send(((author.length > 0) ? (time + ": " + author + ":\n") : "") + message); // send the message in the discord
                 toQueue.shift();
             }
         }
@@ -70,7 +68,6 @@ class DiscordSync {
     async start() {
         client = new Discord.Client();
         await client.login(config.login.discord);
-        await client.channels.get(config.configs.channelID).send(welcome);
 
         await client.removeAllListeners();
         await client.on("message", message => {
