@@ -23,28 +23,32 @@ class Queue {
         }
         this.listener = listener;
 
-        let internal = [[], []];
-        this.push = (message, author) => {
+        let internal = [[], [], []];
+        this.push = (message, author, date) => {
             internal[0].push(message);
             internal[1].push(author);
+            internal[2].push(date);
             setTimeout(this.listener, 0);
             return this.length;
         };
         this.pop = () => {
             const message = internal[0].pop();
             const author = internal[1].pop();
+            const date = internal[2].pop();
             setTimeout(this.listener, 0);
-            return [[message], [author]];
+            return [message, author, date];
         };
         this.shift = () => {
             const message = internal[0].shift();
             const author = internal[1].shift();
+            const date = internal[2].shift();
             setTimeout(this.listener, 0);
-            return [[message], [author]];
+            return [message, author, date];
         };
-        this.unshift = (message, author) => {
+        this.unshift = (message, author, date) => {
             internal[0].unshift(message);
             internal[1].unshift(author);
+            internal[2].unshift(date);
             setTimeout(this.listener, 0);
             return this.length;
         };
@@ -54,6 +58,7 @@ class Queue {
         this.clear = () => {
             internal[0].length = 0;
             internal[1].length = 0;
+            internal[2].length = 0;
             setTimeout(this.listener, 0);
         };
         this.getMessage = (index) => {
@@ -61,6 +66,9 @@ class Queue {
         };
         this.getAuthor = (index) => {
             return internal[1][index];
+        };
+        this.getDate = (index) => {
+            return internal[2][index];
         };
         this.setMessage = (index, value) => {
             const oldValue = internal[0][index];
@@ -72,6 +80,11 @@ class Queue {
             internal[1][index] = value;
             return oldValue;
         };
+        this.setDate = (index, value) => {
+            const oldValue = internal[2][index];
+            internal[2][index] = value;
+            return oldValue;
+        }
     }
 }
 

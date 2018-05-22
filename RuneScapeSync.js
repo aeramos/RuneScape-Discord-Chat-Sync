@@ -109,7 +109,7 @@ async function startup(page) {
                                 }
                                 await restart(page);
                             } else if (output[0] !== "clear") {
-                                fromQueue.push(output[0][0], output[0][1]); // add the message to the discord queue
+                                fromQueue.push(output[0][0], output[0][1], new Date()); // add the message to the discord queue
                                 if (on) {
                                     setTimeout(handleRead, 0);
                                 } else {

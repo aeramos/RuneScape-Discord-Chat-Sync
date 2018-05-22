@@ -36,8 +36,10 @@ async function send() {
                 let author = toQueue.getAuthor(0); // the username of the sender
                 let message = toQueue.getMessage(0); // the actual content of the message
 
-                let time = new Date();
-                time = ("0" + time.getUTCHours()).slice(-2) + ":" + ("0" + time.getUTCMinutes()).slice(-2) + ":" + ("0" + time.getUTCSeconds()).slice(-2);
+                let date;
+                if (toQueue.getDate(0) !== undefined) {
+                    date = ("0" + toQueue.getDate(0).getUTCHours()).slice(-2) + ":" + ("0" + toQueue.getDate(0).getUTCMinutes()).slice(-2) + ":" + ("0" + toQueue.getDate(0).getUTCSeconds()).slice(-2);
+                }
 
                 // Wrap the RuneScape message in a code block
                 // Adapted from discord.js/src/structures/shared/CreateMessage.js (the code for when {code:true} is passed to TextChannel.send
@@ -45,7 +47,7 @@ async function send() {
                 message = message.replace(/```/g, "`\u200b``");
                 message = `\`\`\`${""}\n${message}\n\`\`\``;
 
-                await client.channels.get(config.configs.channelID).send(((author.length > 0) ? (time + ": " + author + ":\n") : "") + message); // send the message in the discord
+                await client.channels.get(config.configs.channelID).send(((author.length > 0) ? (date + ": " + author + ":\n") : "") + message); // send the message in the discord
                 toQueue.shift();
             }
         }
@@ -129,7 +131,7 @@ class DiscordSync {
                     }
 
                     // add the new messages to the end of the queue
-                    fromQueue.push(clean, author);
+                    fromQueue.push(clean, author, new Date());
                 }
             }
         });

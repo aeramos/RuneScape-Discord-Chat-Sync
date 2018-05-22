@@ -35,7 +35,7 @@ let fromRuneScapeQueue = new Queue(() => {
                 toRuneScapeQueue.push("Help, source code, and full license info can be found on GitHub", "");
                 break;
             default:
-                toDiscordQueue.push(fromRuneScapeQueue.getMessage(0), fromRuneScapeQueue.getAuthor(0));
+                toDiscordQueue.push(fromRuneScapeQueue.getMessage(0), fromRuneScapeQueue.getAuthor(0), fromRuneScapeQueue.getDate(0));
                 break;
         }
         fromRuneScapeQueue.shift();
@@ -54,7 +54,7 @@ let fromDiscordQueue = new Queue(() => {
                     "Help, source code, and full license info can be found on GitHub (https://github.com/aeramos/RuneScape-Discord-Chat-Sync)", "");
                 break;
             default:
-                toRuneScapeQueue.push(fromDiscordQueue.getMessage(0), fromDiscordQueue.getAuthor(0));
+                toRuneScapeQueue.push(fromDiscordQueue.getMessage(0), fromDiscordQueue.getAuthor(0), fromDiscordQueue.getDate(0));
                 break;
         }
         fromDiscordQueue.shift();
