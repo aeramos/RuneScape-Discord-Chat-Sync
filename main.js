@@ -31,11 +31,11 @@ let fromRuneScapeQueue = new Queue(() => {
             case runeScapePrefix + "info":
             case runeScapePrefix + "license":
             case runeScapePrefix + "source":
-                toRuneScapeQueue.push("RuneScape-Discord Chat Sync is a free program licensed under the GNU AGPL-3.0", "");
-                toRuneScapeQueue.push("Help, source code, and full license info can be found on GitHub", "");
+                toRuneScapeQueue.push(["RuneScape-Discord Chat Sync is a free program licensed under the GNU AGPL-3.0"]);
+                toRuneScapeQueue.push(["Help, source code, and full license info can be found on GitHub"]);
                 break;
             default:
-                toDiscordQueue.push(fromRuneScapeQueue.getMessage(0), fromRuneScapeQueue.getAuthor(0), fromRuneScapeQueue.getDate(0));
+                toDiscordQueue.push(fromRuneScapeQueue.get(0));
                 break;
         }
         fromRuneScapeQueue.shift();
@@ -50,11 +50,11 @@ let fromDiscordQueue = new Queue(() => {
             case discordPrefix + "info":
             case discordPrefix + "license":
             case discordPrefix + "source":
-                toDiscordQueue.push("RuneScape-Discord Chat Sync is a free program licensed under the GNU AGPL-3.0\n" +
-                    "Help, source code, and full license info can be found on GitHub (https://github.com/aeramos/RuneScape-Discord-Chat-Sync)", "");
+                toDiscordQueue.push(["RuneScape-Discord Chat Sync is a free program licensed under the GNU AGPL-3.0\n" +
+                    "Help, source code, and full license info can be found on GitHub (https://github.com/aeramos/RuneScape-Discord-Chat-Sync)"]);
                 break;
             default:
-                toRuneScapeQueue.push(fromDiscordQueue.getMessage(0), fromDiscordQueue.getAuthor(0), fromDiscordQueue.getDate(0));
+                toRuneScapeQueue.push(fromDiscordQueue.get(0));
                 break;
         }
         fromDiscordQueue.shift();

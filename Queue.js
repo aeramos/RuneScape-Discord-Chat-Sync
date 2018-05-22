@@ -24,7 +24,7 @@ class Queue {
         this.listener = listener;
 
         let internal = [[], [], []];
-        this.push = (message, author, date) => {
+        this.push = ([message, author, date]) => {
             internal[0].push(message);
             internal[1].push(author);
             internal[2].push(date);
@@ -45,7 +45,7 @@ class Queue {
             setTimeout(this.listener, 0);
             return [message, author, date];
         };
-        this.unshift = (message, author, date) => {
+        this.unshift = ([message, author, date]) => {
             internal[0].unshift(message);
             internal[1].unshift(author);
             internal[2].unshift(date);
@@ -60,6 +60,9 @@ class Queue {
             internal[1].length = 0;
             internal[2].length = 0;
             setTimeout(this.listener, 0);
+        };
+        this.get = (index) => {
+            return [this.getMessage(index), this.getAuthor(index), this.getDate(index)];
         };
         this.getMessage = (index) => {
             return internal[0][index];

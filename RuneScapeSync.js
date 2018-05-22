@@ -109,7 +109,7 @@ async function startup(page) {
                                 }
                                 await restart(page);
                             } else if (output[0] !== "clear") {
-                                fromQueue.push(output[0][0], output[0][1], new Date()); // add the message to the discord queue
+                                fromQueue.push([output[0][0], output[0][1], new Date()]); // add the message to the discord queue
                                 if (on) {
                                     setTimeout(handleRead, 0);
                                 } else {
@@ -141,15 +141,15 @@ async function send() {
         while (toQueue.length() > 0) {
             if (readyToSend) {
                 // if the message is too long to send in runescape (80 character limit)
-                if (toQueue.getMessage(0).length + ((toQueue.getAuthor(0).length > 0) ? (toQueue.getAuthor(0).length + 2) : 0) > 80) {
-                    toQueue.unshift(toQueue.getMessage(0).substring(0, (80 - ((toQueue.getAuthor(0).length > 0) ? (toQueue.getAuthor(0).length + 2) : 0))), toQueue.getAuthor(0));
+                if (toQueue.getMessage(0).length + ((toQueue.getAuthor(0) !== undefined) ? (toQueue.getAuthor(0).length + 2) : 0) > 80) {
+                    toQueue.unshift([toQueue.getMessage(0).substring(0, (80 - ((toQueue.getAuthor(0).length > 0) ? (toQueue.getAuthor(0).length + 2) : 0))), toQueue.getAuthor(0), toQueue.getDate(0)]);
                     toQueue.setMessage(1, toQueue.getMessage(1).substring((80 - ((toQueue.getAuthor(0).length > 0) ? (toQueue.getAuthor(0).length + 2) : 0)), toQueue.getMessage(1).length));
                 } else {
                     const startNumber = await page.evaluate(() => {
                         return window.frames[0].document.getElementsByClassName("content push-top-double push-bottom-double").item(0).getElementsByTagName("ul").item(0).querySelectorAll("li.message.clearfix.ng-scope.my-message").length;
                     });
 
-                    await frame.type("input#message", ((toQueue.getAuthor(0).length > 0) ? (toQueue.getAuthor(0) + ": ") : "") + toQueue.getMessage(0));
+                    await frame.type("input#message", ((toQueue.getAuthor(0) !== undefined) ? (toQueue.getAuthor(0) + ": ") : "") + toQueue.getMessage(0));
                     await frame.click("input[type='submit']"); // click on the send button
 
                     // wait up to two seconds for the message to send before resending
