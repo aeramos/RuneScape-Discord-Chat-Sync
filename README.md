@@ -37,9 +37,10 @@ distribute source code to people who use it when I run it?
     server at no charge, through some standard or customary means of
     facilitating copying of software."
 
-    An example of this being done is if the bot sends a message when it starts
-    and upon a user's request that allows the user to get the license
-    information and the source code.
+    The bot currently does this to what I consider a satisfactory level: it has
+    commands that tell the user the name of the project and how to get the
+    source code and license information. Soon I will add a notice in the
+    Discord activity field to ensure that there are sufficient notices.
 
     More information can be found in the COPYING file. Please refer to it for
     any licensing issues and in the event of a contradiction between the text
