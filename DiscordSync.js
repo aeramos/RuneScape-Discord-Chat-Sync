@@ -22,28 +22,25 @@ const Queue = require("./Queue");
 
 const config = require("./config.json");
 
-let readyToSend = true;
+let sending = false;
 
 let toQueue;
 let fromQueue;
-let sending = false;
 
 async function send() {
     if (!sending) {
         sending = true;
         while (toQueue.length() > 0) {
-            if (readyToSend) {
-                let message = toQueue.get(0);
+            let message = toQueue.get(0);
 
-                // Wrap the RuneScape message in a code block
-                // Adapted from discord.js/src/structures/shared/CreateMessage.js (the code for when {code:true} is passed to TextChannel.send
-                // Adapted from escapeMarkdown in discord.js/src/util/Util.js
-                message[0] = message[0].replace(/```/g, "`\u200b``");
-                message[0] = `\`\`\`${""}\n${message[0]}\n\`\`\``;
+            // Wrap the RuneScape message in a code block
+            // Adapted from discord.js/src/structures/shared/CreateMessage.js (the code for when {code:true} is passed to TextChannel.send
+            // Adapted from escapeMarkdown in discord.js/src/util/Util.js
+            message[0] = message[0].replace(/```/g, "`\u200b``");
+            message[0] = `\`\`\`${""}\n${message[0]}\n\`\`\``;
 
-                await client.channels.get(config.configs.channelID).send(((message[1] !== undefined) ? (("0" + message[2].getUTCHours()).slice(-2) + ":" + ("0" + message[2].getUTCMinutes()).slice(-2) + ":" + ("0" + message[2].getUTCSeconds()).slice(-2) + ": " + message[1] + ":\n") : "") + message[0]); // send the message in the discord
-                toQueue.shift();
-            }
+            await client.channels.get(config.configs.channelID).send(((message[1] !== undefined) ? (("0" + message[2].getUTCHours()).slice(-2) + ":" + ("0" + message[2].getUTCMinutes()).slice(-2) + ":" + ("0" + message[2].getUTCSeconds()).slice(-2) + ": " + message[1] + ":\n") : "") + message[0]); // send the message in the discord
+            toQueue.shift();
         }
         sending = false;
     }
@@ -65,68 +62,68 @@ class DiscordSync {
         client = new Discord.Client();
         await client.login(config.login.discord);
 
+        toQueue.clear();
+
         await client.removeAllListeners();
         await client.on("message", message => {
-            if (readyToSend) {
-                if (message.channel.id == config.configs.channelID && message.author.id !== config.configs.botID) {
-                    let author = message.member.nickname;
-                    if (author == null) {
-                        author = message.author.username;
-                    }
-                    let original = message.content;
-                    let clean = "";
-                    // if any of discord's autocompleted emojis are in the message
-                    for (let i = 0; i < original.length; i++) {
-                        switch (original.charAt(i)) {
-                            case "\u2764": // ❤
-                                clean += "<3";
-                                break;
-                            case "\ud83d": // separate switch statement for emojis with 16 bits
-                                switch (original.charAt(++i)) {
-                                    case "\udc94": // 💔
-                                        clean += "</3";
-                                        break;
-                                    case "\ude22": // 😢
-                                        clean += ":'(";
-                                        break;
-                                    case "\ude17": // 😗
-                                        clean += ":*";
-                                        break;
-                                    case "\ude03": // 😃
-                                        clean += ":)";
-                                        break;
-                                    case "\ude04": // 😄
-                                        clean += ":D";
-                                        break;
-                                    case "\ude09": // 😉
-                                        clean += ";)";
-                                        break;
-                                    case "\ude10": // 😐
-                                        clean += ":|";
-                                        break;
-                                    case "\ude2e": // 😮
-                                        clean += ":o";
-                                        break;
-                                    case "\ude20": // 😠
-                                        clean += ">:(";
-                                        break;
-                                    case "\ude26": // 😦
-                                        clean += ":(";
-                                        break;
-                                    case "\ude15": // 😕
-                                        clean += ":/";
-                                        break;
-                                }
-                                break;
-                            default:
-                                clean += original.charAt(i);
-                                break;
-                        }
-                    }
-
-                    // add the new messages to the end of the queue
-                    fromQueue.push([clean, author, new Date()]);
+            if (message.channel.id == config.configs.channelID && message.author.id !== config.configs.botID) {
+                let author = message.member.nickname;
+                if (author == null) {
+                    author = message.author.username;
                 }
+                let original = message.content;
+                let clean = "";
+                // if any of discord's autocompleted emojis are in the message
+                for (let i = 0; i < original.length; i++) {
+                    switch (original.charAt(i)) {
+                        case "\u2764": // ❤
+                            clean += "<3";
+                            break;
+                        case "\ud83d": // separate switch statement for emojis with 16 bits
+                            switch (original.charAt(++i)) {
+                                case "\udc94": // 💔
+                                    clean += "</3";
+                                    break;
+                                case "\ude22": // 😢
+                                    clean += ":'(";
+                                    break;
+                                case "\ude17": // 😗
+                                    clean += ":*";
+                                    break;
+                                case "\ude03": // 😃
+                                    clean += ":)";
+                                    break;
+                                case "\ude04": // 😄
+                                    clean += ":D";
+                                    break;
+                                case "\ude09": // 😉
+                                    clean += ";)";
+                                    break;
+                                case "\ude10": // 😐
+                                    clean += ":|";
+                                    break;
+                                case "\ude2e": // 😮
+                                    clean += ":o";
+                                    break;
+                                case "\ude20": // 😠
+                                    clean += ">:(";
+                                    break;
+                                case "\ude26": // 😦
+                                    clean += ":(";
+                                    break;
+                                case "\ude15": // 😕
+                                    clean += ":/";
+                                    break;
+                            }
+                            break;
+                        default:
+                            clean += original.charAt(i);
+                            break;
+                    }
+                }
+
+                // add the new messages to the end of the queue
+                fromQueue.push([clean, author, new Date()]);
             }
         });
     }

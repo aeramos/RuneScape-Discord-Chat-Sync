@@ -20,13 +20,12 @@ const puppeteer = require("puppeteer");
 const fs = require("fs");
 const Queue = require("./Queue");
 
-let on = true;
-let readyToSend = true;
-let sending = false;
-
 let frame;
 let page;
 let browser;
+
+let on = false;
+let sending = false;
 
 const lastIndex = {number: -1};
 let toQueue;
@@ -81,51 +80,46 @@ async function startup(page) {
                         await console.log(getDateTime() + ": In " + config.configs.chatType + " chat tab");
 
                         await console.log(getDateTime() + ": Ready to chat!");
+                        toQueue.clear();
                         on = true;
-                        readyToSend = true;
+                        sending = false;
 
                         async function handleRead() {
-                            const output = await read(page, lastIndex);
-                            lastIndex.number = output[1];
-                            if (output[0] === "disconnected") {
-                                readyToSend = false;
+                            if (on) {
+                                const output = await read(page, lastIndex);
+                                lastIndex.number = output[1];
+                                if (output[0] === "disconnected") { // the bot disconnected from the game
+                                    await console.log(getDateTime() + ": Lost connection");
+                                    if (!await waitForSelector("div.modal-body.ng-scope", 5000, false)) {
+                                        const dateTime = getDateTime().replace(/:/g, ".");
+                                        await console.log(dateTime + ": Unexpected error, dumping data");
 
-                                await console.log(getDateTime() + ": Lost connection");
-                                if (!await waitForSelector("div.modal-body.ng-scope", 5000, false)) {
-                                    const dateTime = getDateTime().replace(/:/g, ".");
-                                    await console.log(dateTime + ": Unexpected error, dumping data");
+                                        await fs.writeFile(config.configs.errorDirectory + dateTime + ".html", await frame.content(), (err) => {
+                                            if (!err) {
+                                                console.log(dateTime + ": Saved HTML data as: " + dateTime + ".html");
+                                            } else {
+                                                console.log(dateTime + ": Error saving HTML data:");
+                                                console.log(err);
+                                            }
+                                        });
 
-                                    await fs.writeFile(config.configs.errorDirectory + dateTime + ".html", await frame.content(), (err) => {
-                                        if (!err) {
-                                            console.log(dateTime + ": Saved HTML data as: " + dateTime + ".html");
-                                        } else {
-                                            console.log(dateTime + ": Error saving HTML data:");
-                                            console.log(err);
-                                        }
-                                    });
-
-                                    await page.screenshot({path: config.configs.errorDirectory + dateTime + ": error1" + ".png"});
-                                    await console.log(dateTime + ": Saved screenshot as: " + dateTime + ".png");
-                                }
-                                await restart(page);
-                            } else if (output[0] !== "clear") {
-                                fromQueue.push([output[0][0], output[0][1], new Date()]); // add the message to the discord queue
-                                if (on) {
+                                        await page.screenshot({path: config.configs.errorDirectory + dateTime + ": error1" + ".png"});
+                                        await console.log(dateTime + ": Saved screenshot as: " + dateTime + ".png");
+                                    }
+                                    on = false;
+                                    await restart(page);
+                                } else if (output[0] !== "clear") { // there was a message
+                                    fromQueue.push([output[0][0], output[0][1], new Date()]); // add the message to the discord queue
                                     setTimeout(handleRead, 0);
-                                } else {
-                                    restart(page);
+                                } else { // the output was "clear" (there was no message)
+                                    setTimeout(handleRead, 600);
                                 }
                             } else {
-                                if (on) {
-                                    setTimeout(handleRead, 600);
-                                } else {
-                                    restart(page);
-                                }
+                                restart(page);
                             }
                         }
 
                         setTimeout(handleRead, 0);
-
                         return;
                     }
                 }
@@ -139,7 +133,7 @@ async function send() {
     if (!sending) {
         sending = true;
         while (toQueue.length() > 0) {
-            if (readyToSend) {
+            if (on) {
                 // if the message is too long to send in runescape (80 character limit)
                 if (toQueue.getMessage(0).length + ((toQueue.getAuthor(0) !== undefined) ? (toQueue.getAuthor(0).length + 2) : 0) > 80) {
                     toQueue.unshift([toQueue.getMessage(0).substring(0, (80 - ((toQueue.getAuthor(0).length > 0) ? (toQueue.getAuthor(0).length + 2) : 0))), toQueue.getAuthor(0), toQueue.getDate(0)]);
@@ -155,24 +149,20 @@ async function send() {
                     // wait up to two seconds for the message to send before resending
                     const startTime = Date.now();
                     while (Date.now() - startTime < 2000) {
-                        if (readyToSend) {
-                            // checks if the message was actually sent
-                            const currentNumber = await page.evaluate(() => {
-                                return window.frames[0].document.getElementsByClassName("content push-top-double push-bottom-double").item(0).getElementsByTagName("ul").item(0).querySelectorAll("li.message.clearfix.ng-scope.my-message").length;
-                            });
+                        // checks if the message was actually sent
+                        const currentNumber = await page.evaluate(() => {
+                            return window.frames[0].document.getElementsByClassName("content push-top-double push-bottom-double").item(0).getElementsByTagName("ul").item(0).querySelectorAll("li.message.clearfix.ng-scope.my-message").length;
+                        });
 
-                            // the message sent successfully, so it can be removed from the queue
-                            if (startNumber < currentNumber) {
-                                toQueue.shift();
-                                break;
-                            }
-                        } else {
-                            toQueue.clear();
+                        // the message sent successfully, so it can be removed from the queue
+                        if (startNumber < currentNumber) {
+                            toQueue.shift();
+                            break;
                         }
                     }
                 }
             } else {
-                toQueue.clear();
+                return;
             }
         }
         sending = false;
@@ -180,47 +170,43 @@ async function send() {
 }
 
 async function read(page, lastIndex) {
-    if (readyToSend) {
-        return await page.evaluate((lastIndex) => {
-            function getNextMessage(ul, lastIndex) {
-                let list = ul.querySelectorAll("li.message.clearfix.ng-scope:not(.my-message):not(.historical)");
-                if (lastIndex.number < list.length - 1) {
-                    return list[++lastIndex.number];
-                } else {
-                    // if the bot restarted and the messages were cleared
-                    if (lastIndex >= list.length) {
-                        lastIndex.number = list.length - 1; // make it seem like the bot has completed the message queue (put the bot back on track)
-                    }
-                    return null;
-                }
-            }
-
-            let div = window.frames[0].document.getElementsByClassName("content push-top-double push-bottom-double").item(0); // the div that holds the list
-            if (div != null) {
-                let ul = div.getElementsByTagName("ul").item(0); // the list
-                if (ul != null) { // if there are messages
-                    let lastMessage = getNextMessage(ul, lastIndex);
-
-                    if (lastMessage !== null) {
-                        let authorElement = lastMessage.getElementsByClassName("author").item(0);
-                        let messageElement = lastMessage.getElementsByTagName("p").item(0);
-                        if (authorElement != null && messageElement != null) {
-                            let author = authorElement.childNodes[0].nodeValue; // the username of the sender
-                            author = author.substring(0, (author.length - 3)); // trim the " - " from the end of the author string
-                            let message = messageElement.childNodes[0].nodeValue; // the actual content of the message
-
-                            return [[message, author], lastIndex.number];
-                        }
-                    }
-                }
+    return await page.evaluate((lastIndex) => {
+        function getNextMessage(ul, lastIndex) {
+            let list = ul.querySelectorAll("li.message.clearfix.ng-scope:not(.my-message):not(.historical)");
+            if (lastIndex.number < list.length - 1) {
+                return list[++lastIndex.number];
             } else {
-                return ["disconnected", lastIndex.number]; // there was an error and the bot is no longer in the chat screen
+                // if the bot restarted and the messages were cleared
+                if (lastIndex >= list.length) {
+                    lastIndex.number = list.length - 1; // make it seem like the bot has completed the message queue (put the bot back on track)
+                }
+                return null;
             }
-            return ["clear", lastIndex.number]; // there are no messages to read, so just send nothing
-        }, lastIndex);
-    } else {
-        return ["clear", lastIndex.number];
-    }
+        }
+
+        let div = window.frames[0].document.getElementsByClassName("content push-top-double push-bottom-double").item(0); // the div that holds the list
+        if (div != null) {
+            let ul = div.getElementsByTagName("ul").item(0); // the list
+            if (ul != null) { // if there are messages
+                let lastMessage = getNextMessage(ul, lastIndex);
+
+                if (lastMessage !== null) {
+                    let authorElement = lastMessage.getElementsByClassName("author").item(0);
+                    let messageElement = lastMessage.getElementsByTagName("p").item(0);
+                    if (authorElement != null && messageElement != null) {
+                        let author = authorElement.childNodes[0].nodeValue; // the username of the sender
+                        author = author.substring(0, (author.length - 3)); // trim the " - " from the end of the author string
+                        let message = messageElement.childNodes[0].nodeValue; // the actual content of the message
+
+                        return [[message, author], lastIndex.number];
+                    }
+                }
+            }
+        } else {
+            return ["disconnected", lastIndex.number]; // there was an error and the bot is no longer in the chat screen
+        }
+        return ["clear", lastIndex.number]; // there are no messages to read, so just send nothing
+    }, lastIndex);
 }
 
 function restart(page) {
@@ -283,7 +269,6 @@ class RuneScapeSync {
 
     async restart() {
         on = false;
-        readyToSend = false;
     }
 }
 

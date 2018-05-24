@@ -22,6 +22,8 @@ const DiscordSync = require("./DiscordSync");
 
 const runeScapePrefix = "~";
 const discordPrefix = "~";
+let runeScapePause = false;
+let discordPause = false;
 
 let toRuneScapeQueue = new Queue(RuneScapeSync.toQueueListener);
 let fromRuneScapeQueue = new Queue(() => {
@@ -35,7 +37,9 @@ let fromRuneScapeQueue = new Queue(() => {
                 toRuneScapeQueue.push(["Help, source code, and full license info can be found on GitHub"]);
                 break;
             default:
-                toDiscordQueue.push(fromRuneScapeQueue.get(0));
+                if (!discordPause) {
+                    toDiscordQueue.push(fromRuneScapeQueue.get(0));
+                }
                 break;
         }
         fromRuneScapeQueue.shift();
@@ -54,7 +58,9 @@ let fromDiscordQueue = new Queue(() => {
                     "Help, source code, and full license info can be found on GitHub (https://github.com/aeramos/RuneScape-Discord-Chat-Sync)"]);
                 break;
             default:
-                toRuneScapeQueue.push(fromDiscordQueue.get(0));
+                if (!runeScapePause) {
+                    toRuneScapeQueue.push(fromDiscordQueue.get(0));
+                }
                 break;
         }
         fromDiscordQueue.shift();
@@ -83,8 +89,9 @@ function shutdown() {
     process.exit();
 }
 
-readline.on("line", (input) => {
-    switch (input) {
+readline.on("line", (originalInput) => {
+    const input = originalInput.toLowerCase().split(" ");
+    switch (input[0]) {
         case "html":
             let html = rs.getHTML();
             if (html !== undefined) {
@@ -98,6 +105,44 @@ readline.on("line", (input) => {
                 });
             } else {
                 console.log("Error: Can not get HTML data because the browser is not ready yet");
+            }
+            break;
+        case "pause":
+            switch (input[1]) {
+                case "runescape":
+                    console.log("Paused syncing messages to RuneScape");
+                    runeScapePause = true;
+                    break;
+                case "discord":
+                    console.log("Paused syncing messages to Discord");
+                    discordPause = true;
+                    break;
+                case "both":
+                    console.log("Paused sync");
+                    break;
+                default:
+                    console.log("Error: Must specify which service to pause");
+                    console.log("       pause <service>");
+                    console.log("       \"service\" can be \"runescape\", \"discord\", or \"both\"");
+            }
+            break;
+        case "resume":
+            switch (input[1]) {
+                case "runescape":
+                    console.log("Resumed syncing messages to RuneScape");
+                    runeScapePause = false;
+                    break;
+                case "discord":
+                    console.log("Resumed syncing messages to Discord");
+                    discordPause = false;
+                    break;
+                case "both":
+                    console.log("Resumed sync");
+                    break;
+                default:
+                    console.log("Error: Must specify which service to resume");
+                    console.log("       resume <service>");
+                    console.log("       \"service\" can be \"runescape\", \"discord\", or \"both\"");
             }
             break;
         case "restart":
@@ -122,7 +167,7 @@ readline.on("line", (input) => {
             shutdown();
             break;
         default:
-            console.log("Unknown command: " + input);
+            console.log("Unknown command: " + originalInput);
             break;
     }
 });
