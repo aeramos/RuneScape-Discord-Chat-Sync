@@ -122,8 +122,10 @@ class DiscordSync {
                     }
                 }
 
-                // add the new messages to the end of the queue
-                fromQueue.push([clean, author, new Date()]);
+                const date = new Date();
+                clean.split('\n').forEach((e) => {
+                    fromQueue.push([e, author, date]);
+                });
             }
         });
     }
