@@ -19,9 +19,14 @@
 const RuneScapeSync = require("./RuneScapeSync");
 const Queue = require("./Queue");
 const DiscordSync = require("./DiscordSync");
+const fs = require("fs");
+const readline = require("readline").createInterface({
+    input: process.stdin,
+    output: process.stdout
+});
 
-const runeScapePrefix = "~";
-const discordPrefix = "~";
+const config = require("./config.json");
+
 let runeScapePause = false;
 let discordPause = false;
 
@@ -29,10 +34,10 @@ let toRuneScapeQueue = new Queue(RuneScapeSync.toQueueListener);
 let fromRuneScapeQueue = new Queue(() => {
     while (fromRuneScapeQueue.length() > 0) {
         switch(fromRuneScapeQueue.getMessage(0)) {
-            case runeScapePrefix + "help":
-            case runeScapePrefix + "info":
-            case runeScapePrefix + "license":
-            case runeScapePrefix + "source":
+            case config.configs.runeScapePrefix + "help":
+            case config.configs.runeScapePrefix + "info":
+            case config.configs.runeScapePrefix + "license":
+            case config.configs.runeScapePrefix + "source":
                 toRuneScapeQueue.push(["RuneScape-Discord Chat Sync is a free program licensed under the GNU AGPL-3.0"]);
                 toRuneScapeQueue.push(["Help, source code, and full license info can be found on GitHub"]);
                 break;
@@ -50,10 +55,10 @@ let toDiscordQueue = new Queue(DiscordSync.toQueueListener);
 let fromDiscordQueue = new Queue(() => {
     while (fromDiscordQueue.length() > 0) {
         switch (fromDiscordQueue.getMessage(0)) {
-            case discordPrefix + "help":
-            case discordPrefix + "info":
-            case discordPrefix + "license":
-            case discordPrefix + "source":
+            case config.configs.discordPrefix + "help":
+            case config.configs.discordPrefix + "info":
+            case config.configs.discordPrefix + "license":
+            case config.configs.discordPrefix + "source":
                 toDiscordQueue.push(["RuneScape-Discord Chat Sync is a free program licensed under the GNU AGPL-3.0\n" +
                     "Help, source code, and full license info can be found on GitHub (https://github.com/aeramos/RuneScape-Discord-Chat-Sync)"]);
                 break;
@@ -67,27 +72,13 @@ let fromDiscordQueue = new Queue(() => {
     }
 });
 
-let rs = new RuneScapeSync(toRuneScapeQueue, fromRuneScapeQueue);
-let discord = new DiscordSync(toDiscordQueue, fromDiscordQueue);
+let rs = new RuneScapeSync(toRuneScapeQueue, fromRuneScapeQueue, config);
+let discord = new DiscordSync(toDiscordQueue, fromDiscordQueue, config);
 
 (async() => {
     rs.start();
     discord.start();
 })();
-
-const readline = require("readline").createInterface({
-    input: process.stdin,
-    output: process.stdout
-});
-const fs = require("fs");
-
-const config = require("./config.json");
-
-function shutdown() {
-    console.log("\n" + getDateTime() + ": Shutting down!");
-    Promise.all([rs.shutdown(), discord.shutdown()]);
-    process.exit();
-}
 
 readline.on("line", (originalInput) => {
     const input = originalInput.toLowerCase().split(" ");
@@ -172,6 +163,12 @@ readline.on("line", (originalInput) => {
     }
 });
 
+function shutdown() {
+    console.log("\n" + getDateTime() + ": Shutting down!");
+    Promise.all([rs.shutdown(), discord.shutdown()]);
+    process.exit();
+}
+
 readline.on("close", () => {
     shutdown();
 });
@@ -179,8 +176,4 @@ readline.on("close", () => {
 function getDateTime() {
     let date = new Date();
     return date.getUTCFullYear() + ":" + ("0" + (date.getUTCMonth() + 1)).slice(-2) + ":" + ("0" + date.getUTCDate()).slice(-2) + ":" + ("0" + date.getUTCHours()).slice(-2) + ":" + ("0" + date.getUTCMinutes()).slice(-2) + ":" + ("0" + date.getUTCSeconds()).slice(-2);
-}
-
-function sleep(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
 }

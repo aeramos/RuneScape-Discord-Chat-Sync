@@ -31,7 +31,7 @@ const lastIndex = {number: -1};
 let toQueue;
 let fromQueue;
 
-const config = require("./config.json");
+let config;
 
 async function startup(page) {
     async function waitForSelector(selector, timeout, hidden) {
@@ -229,9 +229,10 @@ function sleep(ms) {
 }
 
 class RuneScapeSync {
-    constructor(toQueue1 = new Queue(), fromQueue1 = new Queue()) {
+    constructor(toQueue1 = new Queue(), fromQueue1 = new Queue(), config1) {
         fromQueue = fromQueue1;
         toQueue = toQueue1;
+        config = config1;
     }
 
     static get toQueueListener() {

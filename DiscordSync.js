@@ -17,11 +17,10 @@
  */
 
 const Discord = require("discord.js");
-let client;
 const Queue = require("./Queue");
 
-const config = require("./config.json");
-
+let client;
+let config;
 let sending = false;
 
 let toQueue;
@@ -47,9 +46,10 @@ async function send() {
 }
 
 class DiscordSync {
-    constructor(toQueue1 = new Queue(), fromQueue1 = new Queue()) {
+    constructor(toQueue1 = new Queue(), fromQueue1 = new Queue(), config1) {
         fromQueue = fromQueue1;
         toQueue = toQueue1;
+        config = config1;
     }
 
     static get toQueueListener() {
