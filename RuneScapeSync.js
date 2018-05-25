@@ -57,72 +57,76 @@ async function startup(page) {
         await frame.type("input#password", config.login.password); // type the password
         await frame.click("button.icon-login"); // click on the submit button
         if (await waitForSelector("div.modal-body.ng-scope", 15000, false)) {
-            await console.log(getDateTime() + ": Logged in");
+            if (await frame.$("div[ng-include=\"'partials/save_credentials.ws'\"]")) {
+                await console.log(getDateTime() + ": Logged in");
 
-            await frame.click("a[ng-click='modalCancel()']"); // click on the "no" button on the save password dialog
-            if (await waitForSelector("div.modal-body.ng-scope", 5000, true)) {
-                await console.log(getDateTime() + ": In app");
+                await frame.click("a[ng-click='modalCancel()']"); // click on the "no" button on the save password dialog
+                if (await waitForSelector("div.modal-body.ng-scope", 5000, true)) {
+                    await console.log(getDateTime() + ": In app");
 
-                await frame.click("li.all-chat"); // click on the chat tab
-                if (await waitForSelector("section.chat.all-chat.ng-scope", 10000, false)) {
-                    await sleep(250); // wait for the slider to show it
-                    await console.log(getDateTime() + ": In chat tab");
+                    await frame.click("li.all-chat"); // click on the chat tab
+                    if (await waitForSelector("section.chat.all-chat.ng-scope", 10000, false)) {
+                        await sleep(250); // wait for the slider to show it
+                        await console.log(getDateTime() + ": In chat tab");
 
-                    if (config.configs.chatType === "clan") {
-                        await frame.click("i.icon-clanchat:not(.icon)"); // click on the clan chat tab
-                    } else if (config.configs.chatType === "friends") {
-                        await frame.click("i.icon-friendschat:not(.icon)"); // click on the friends chat tab
-                    } else {
-                        await console.log(getDateTime() + ": Not a valid chat type. must be \"clan\" or \"friends\"");
-                        await shutdown();
-                    }
-                    if (await waitForSelector("input#message", 10000, false)) {
-                        await console.log(getDateTime() + ": In " + config.configs.chatType + " chat tab");
-
-                        await console.log(getDateTime() + ": Ready to chat!");
-                        toQueue.clear();
-                        on = true;
-                        sending = false;
-
-                        async function handleRead() {
-                            if (on) {
-                                const output = await read(page, lastIndex);
-                                lastIndex.number = output[1];
-                                if (output[0] === "disconnected") { // the bot disconnected from the game
-                                    await console.log(getDateTime() + ": Lost connection");
-                                    if (!await waitForSelector("div.modal-body.ng-scope", 5000, false)) {
-                                        const dateTime = getDateTime().replace(/:/g, ".");
-                                        await console.log(dateTime + ": Unexpected error, dumping data");
-
-                                        await fs.writeFile(config.configs.errorDirectory + dateTime + ".html", await frame.content(), (err) => {
-                                            if (!err) {
-                                                console.log(dateTime + ": Saved HTML data as: " + dateTime + ".html");
-                                            } else {
-                                                console.log(dateTime + ": Error saving HTML data:");
-                                                console.log(err);
-                                            }
-                                        });
-
-                                        await page.screenshot({path: config.configs.errorDirectory + dateTime + ": error1" + ".png"});
-                                        await console.log(dateTime + ": Saved screenshot as: " + dateTime + ".png");
-                                    }
-                                    on = false;
-                                    await restart(page);
-                                } else if (output[0] !== "clear") { // there was a message
-                                    fromQueue.push([output[0][0], output[0][1], new Date()]); // add the message to the discord queue
-                                    setTimeout(handleRead, 0);
-                                } else { // the output was "clear" (there was no message)
-                                    setTimeout(handleRead, 600);
-                                }
-                            } else {
-                                restart(page);
-                            }
+                        if (config.configs.chatType === "clan") {
+                            await frame.click("i.icon-clanchat:not(.icon)"); // click on the clan chat tab
+                        } else if (config.configs.chatType === "friends") {
+                            await frame.click("i.icon-friendschat:not(.icon)"); // click on the friends chat tab
+                        } else {
+                            await console.log(getDateTime() + ": Not a valid chat type. must be \"clan\" or \"friends\"");
+                            await shutdown();
                         }
+                        if (await waitForSelector("input#message", 10000, false)) {
+                            await console.log(getDateTime() + ": In " + config.configs.chatType + " chat tab");
 
-                        setTimeout(handleRead, 0);
-                        return;
+                            await console.log(getDateTime() + ": Ready to chat!");
+                            toQueue.clear();
+                            on = true;
+                            sending = false;
+
+                            async function handleRead() {
+                                if (on) {
+                                    const output = await read(page, lastIndex);
+                                    lastIndex.number = output[1];
+                                    if (output[0] === "disconnected") { // the bot disconnected from the game
+                                        await console.log(getDateTime() + ": Lost connection");
+                                        if (!await waitForSelector("div.modal-body.ng-scope", 5000, false)) {
+                                            const dateTime = getDateTime().replace(/:/g, ".");
+                                            await console.log(dateTime + ": Unexpected error, dumping data");
+
+                                            await fs.writeFile(config.configs.errorDirectory + dateTime + ".html", await frame.content(), (err) => {
+                                                if (!err) {
+                                                    console.log(dateTime + ": Saved HTML data as: " + dateTime + ".html");
+                                                } else {
+                                                    console.log(dateTime + ": Error saving HTML data:");
+                                                    console.log(err);
+                                                }
+                                            });
+
+                                            await page.screenshot({path: config.configs.errorDirectory + dateTime + ": error1" + ".png"});
+                                            await console.log(dateTime + ": Saved screenshot as: " + dateTime + ".png");
+                                        }
+                                        on = false;
+                                        await restart(page);
+                                    } else if (output[0] !== "clear") { // there was a message
+                                        fromQueue.push([output[0][0], output[0][1], new Date()]); // add the message to the discord queue
+                                        setTimeout(handleRead, 0);
+                                    } else { // the output was "clear" (there was no message)
+                                        setTimeout(handleRead, 600);
+                                    }
+                                } else {
+                                    restart(page);
+                                }
+                            }
+
+                            setTimeout(handleRead, 0);
+                            return;
+                        }
                     }
                 }
+            } else {
+                throw Error("Could not login because it's already logged in elsewhere");
             }
         }
     }
