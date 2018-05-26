@@ -83,6 +83,49 @@ let discord = new DiscordSync(toDiscordQueue, fromDiscordQueue, config);
 readline.on("line", (originalInput) => {
     const input = originalInput.toLowerCase().split(" ");
     switch (input[0]) {
+        case "help":
+            if (input.length > 1) {
+                switch (input[1]) {
+                    case "help":
+                        console.log("help [command]");
+                        console.log("Lists commands, or when given a command, prints info about the command");
+                        break;
+                    case "html":
+                        console.log("html");
+                        console.log("Saves current HTML data of RuneScape page to configured htmlDumpDirectory");
+                        break;
+                    case "license":
+                        console.log("license");
+                        console.log("Prints license information (AGPL-3.0+)");
+                        break;
+                    case "pause":
+                        console.log("pause <service>");
+                        console.log("Pauses syncing to given service (\"runescape\", \"discord\", or \"both\")");
+                        break;
+                    case "resume":
+                        console.log("resume <service>");
+                        console.log("Pauses syncing to given service (\"runescape\", \"discord\", or \"both\")");
+                        break;
+                    case "restart":
+                        console.log("restart");
+                        console.log("Restarts the bot");
+                        break;
+                    case "screenshot":
+                        console.log("screenshot");
+                        console.log("Saves screenshot of RuneScape page to configured screenshotDirectory");
+                        break;
+                    case "shutdown":
+                        console.log("shutdown");
+                        console.log("Shuts down the bot");
+                        break;
+                    default:
+                        console.log("Error: No such command: " + originalInput.substring(5));
+                        break;
+                }
+            } else {
+                console.log("Commands: help, html, license, pause, resume, restart, screenshot, shutdown");
+            }
+            break;
         case "html":
             let html = rs.getHTML();
             if (html !== undefined) {
@@ -97,6 +140,25 @@ readline.on("line", (originalInput) => {
             } else {
                 console.log("Error: Can not get HTML data because the browser is not ready yet");
             }
+            break;
+        case "license":
+            console.log(
+                "RuneScape-Discord Chat Sync is a RuneScape Companion and Discord bot that\n" +
+                "synchronizes a RuneScape Friends/Clan Chat with Discord chat\n" +
+                "Copyright (C) 2018 Alejandro Ramos\n" +
+                "\n" +
+                "This program is free software: you can redistribute it and/or modify\n" +
+                "it under the terms of the GNU Affero General Public License as published by\n" +
+                "the Free Software Foundation, either version 3 of the License, or\n" +
+                "(at your option) any later version.\n" +
+                "\n" +
+                "This program is distributed in the hope that it will be useful,\n" +
+                "but WITHOUT ANY WARRANTY; without even the implied warranty of\n" +
+                "MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n" +
+                "GNU Affero General Public License for more details.\n" +
+                "\n" +
+                "You should have received a copy of the GNU Affero General Public License\n" +
+                "along with this program.  If not, see <https://www.gnu.org/licenses/>.");
             break;
         case "pause":
             switch (input[1]) {
