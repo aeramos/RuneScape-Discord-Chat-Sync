@@ -61,6 +61,7 @@ class DiscordSync {
     async start() {
         client = new Discord.Client();
         await client.login(config.login.discord);
+        await client.user.setActivity(config.configs.discordPrefix + "help");
 
         toQueue.clear();
 

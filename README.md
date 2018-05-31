@@ -39,8 +39,8 @@ distribute source code to people who use it when I run it?
 
     The bot currently does this to what I consider a satisfactory level: it has
     commands that tell the user the name of the project and how to get the
-    source code and license information. Soon I will add a notice in the
-    Discord activity field to ensure that there are sufficient notices.
+    source code and license information. It also tells the user how to get help
+    in the Discord activity field.
 
     More information can be found in the COPYING file. Please refer to it for
     any licensing issues and in the event of a contradiction between the text
