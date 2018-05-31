@@ -99,16 +99,16 @@ readline.on("line", (originalInput) => {
                         console.log("Prints license information (AGPL-3.0+)");
                         break;
                     case "pause":
-                        console.log("pause <service>");
-                        console.log("Pauses syncing to given service (\"runescape\", \"discord\", or \"both\")");
+                        console.log("pause [service]");
+                        console.log("Pauses syncing completely or to the given service (\"runescape\" or \"discord\")");
                         break;
                     case "resume":
-                        console.log("resume <service>");
-                        console.log("Pauses syncing to given service (\"runescape\", \"discord\", or \"both\")");
+                        console.log("resume [service]");
+                        console.log("Resumes syncing completely or to the given service (\"runescape\" or \"discord\")");
                         break;
                     case "restart":
-                        console.log("restart");
-                        console.log("Restarts the bot");
+                        console.log("restart [service]");
+                        console.log("Restarts the bot or just the given service (\"runescape\" or \"discord\")");
                         break;
                     case "screenshot":
                         console.log("screenshot");
@@ -170,13 +170,16 @@ readline.on("line", (originalInput) => {
                     console.log("Paused syncing messages to Discord");
                     discordPause = true;
                     break;
-                case "both":
-                    console.log("Paused sync");
+                case undefined:
+                    console.log("Paused syncing messages");
+                    runeScapePause = true;
+                    discordPause = true;
                     break;
                 default:
-                    console.log("Error: Must specify which service to pause");
-                    console.log("       pause <service>");
-                    console.log("       \"service\" can be \"runescape\", \"discord\", or \"both\"");
+                    console.log("Error: Invalid service selected");
+                    console.log("       pause [service]");
+                    console.log("       Pauses syncing completely or just to the given service (\"runescape\" or \"discord\")");
+                    break;
             }
             break;
         case "resume":
@@ -189,17 +192,36 @@ readline.on("line", (originalInput) => {
                     console.log("Resumed syncing messages to Discord");
                     discordPause = false;
                     break;
-                case "both":
-                    console.log("Resumed sync");
+                case undefined:
+                    console.log("Resumed syncing messages");
+                    runeScapePause = false;
+                    discordPause = false;
                     break;
                 default:
-                    console.log("Error: Must specify which service to resume");
-                    console.log("       resume <service>");
-                    console.log("       \"service\" can be \"runescape\", \"discord\", or \"both\"");
+                    console.log("Error: Invalid service selected");
+                    console.log("       resume [service]");
+                    console.log("       Resumes syncing completely or just to the given service (\"runescape\" or \"discord\")");
             }
             break;
         case "restart":
-            Promise.all([rs.restart(), discord.restart()]);
+            switch (input[1]) {
+                case "runescape":
+                    console.log("Restarting RuneScape...");
+                    rs.restart();
+                    break;
+                case "discord":
+                    console.log("Restarting Discord...");
+                    discord.restart();
+                    break;
+                case undefined:
+                    console.log("Restarting all...");
+                    Promise.all([rs.restart(), discord.restart()]);
+                    break;
+                default:
+                    console.log("Error: Invalid service selected");
+                    console.log("       restart [service]");
+                    console.log("       Restarts the bot or just the given service (\"runescape\" or \"discord\")");
+            }
             break;
         case "screenshot":
             let screenshot = rs.getScreenshot();
