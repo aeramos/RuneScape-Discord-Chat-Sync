@@ -18,6 +18,24 @@ a conversation, or to keep chat logs.
 It is officially hosted on
 [GitHub](https://github.com/aeramos/RuneScape-Discord-Chat-Sync).
 
+### HOW TO USE
+1. Download the repository. This can be done by downloading the `.zip`, but I
+recommend using git so that you may easily receive updates.
+
+2. Configure the bot.
+    * Personalize the entries in `config.json.example`.
+
+    * Rename `config.json.example` to `config.json`.
+
+3. Run the bot.
+    * Navigate to the project directory.
+
+    * In the terminal, run `npm install` to install all of the necessary node
+    packages. When you want to update the packages, run `npm update` instead.
+
+    * In the terminal, run `node main.js` to start the bot using your
+    configuration.
+
 ### FAQ
 * Since the bot is licensed under the
 [GNU AGPL-3.0+](https://www.gnu.org/licenses/agpl-3.0.html), do I have to
