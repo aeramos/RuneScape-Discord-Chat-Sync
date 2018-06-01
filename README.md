@@ -64,6 +64,14 @@ distribute source code to people who use it when I run it?
     any licensing issues and in the event of a contradiction between the text
     in the README and the text in COPYING, refer to the text in COPYING.
 
+* Will I be banned from RuneScape for using this bot?
+    * I **very** highly doubt it. First off, I don't think that Jagex's antiban
+    applies to the RuneScape Companion since not much can be done from there.
+    I have run this bot for days straight without any problems. If the bot does
+    get banned, only the bot should get banned. I highly doubt that Jagex would
+    ban anyone else (the host or anyone in the clan/friends chat). So rest
+    assured, there is almost no risk from using this bot in your chat.
+
 ## MAINTAINERS
 
  * [Alejandro Ramos](https://github.com/aeramos)
