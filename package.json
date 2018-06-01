@@ -1,8 +1,8 @@
 {
   "name": "rsdcs",
   "version": "0.1.0",
-  "description": "A RuneScape-Discord chat bot that syncs the two chats",
-  "main": "rsdcs.js",
+  "description": "A RuneScape Companion and Discord bot that synchronizes a RuneScape Friends/Clan Chat with Discord chat",
+  "main": "main.js",
   "scripts": {},
   "repository": {
     "type": "git",
