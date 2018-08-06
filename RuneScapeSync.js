@@ -252,17 +252,17 @@ class RuneScapeSync {
         await startup(page);
     }
 
-    async getHTML() {
+    getHTML() {
         if (frame !== undefined) {
-            return await frame.content();
+            return frame.content();
         } else {
             return undefined;
         }
     }
 
-    async getScreenshot() {
+    getScreenshot() {
         if (page !== undefined) {
-            return await page.screenshot();
+            return page.screenshot();
         } else {
             return undefined;
         }

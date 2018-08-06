@@ -80,7 +80,7 @@ let discord = new DiscordSync(toDiscordQueue, fromDiscordQueue, config);
     discord.start();
 })();
 
-readline.on("line", (originalInput) => {
+readline.on("line", async (originalInput) => {
     const input = originalInput.toLowerCase().split(" ");
     switch (input[0]) {
         case "help":
@@ -127,7 +127,7 @@ readline.on("line", (originalInput) => {
             }
             break;
         case "html":
-            let html = rs.getHTML();
+            let html = await rs.getHTML();
             if (html !== undefined) {
                 const name = getDateTime().replace(/:/g, ".") + ".html";
                 fs.writeFile(config.configs.htmlDumpDirectory + name, html, (err) => {
@@ -224,7 +224,7 @@ readline.on("line", (originalInput) => {
             }
             break;
         case "screenshot":
-            let screenshot = rs.getScreenshot();
+            let screenshot = await rs.getScreenshot();
             if (screenshot !== undefined) {
                 const name = getDateTime().replace(/:/g, ".") + ".png";
                 fs.writeFile(config.configs.screenshotDirectory + name, screenshot, (err) => {
