@@ -197,13 +197,18 @@ async function read(page, lastIndex) {
                 if (lastMessage !== null) {
                     let authorElement = lastMessage.getElementsByClassName("author").item(0);
                     let messageElement = lastMessage.getElementsByTagName("p").item(0);
-                    if (authorElement != null && messageElement != null) {
-                        let author = authorElement.childNodes[0].nodeValue; // the username of the sender
-                        author = author.substring(0, (author.length - 3)); // trim the " - " from the end of the author string
-                        let message = messageElement.childNodes[0].nodeValue; // the actual content of the message
-
-                        return [[message, author], lastIndex.number];
+                    if (authorElement != null) {
+                        authorElement = authorElement.childNodes[0].nodeValue;
+                        authorElement = authorElement.substring(0, (authorElement.length - 3)); // trim the " - " from the end of the author string
+                    } else {
+                        authorElement = undefined;
                     }
+                    if (messageElement != null) {
+                        messageElement = messageElement.childNodes[0].nodeValue;
+                    } else {
+                        messageElement = undefined;
+                    }
+                    return [[messageElement, authorElement], lastIndex.number];
                 }
             }
         } else {

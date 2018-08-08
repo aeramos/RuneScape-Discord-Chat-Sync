@@ -38,7 +38,15 @@ async function send() {
             message[0] = message[0].replace(/```/g, "`\u200b``");
             message[0] = `\`\`\`${""}\n${message[0]}\n\`\`\``;
 
-            await client.channels.get(config.configs.channelID).send(((message[1] !== undefined) ? (("0" + message[2].getUTCHours()).slice(-2) + ":" + ("0" + message[2].getUTCMinutes()).slice(-2) + ":" + ("0" + message[2].getUTCSeconds()).slice(-2) + ": " + message[1] + ":\n") : "") + message[0]); // send the message in the discord
+            let discordMessage = "";
+
+            if (message[2] != undefined) {
+                discordMessage += ("0" + message[2].getUTCHours()).slice(-2) + ":" + ("0" + message[2].getUTCMinutes()).slice(-2) + ":" + ("0" + message[2].getUTCSeconds()).slice(-2) + ":";
+            }
+            if (message[1] != undefined) {
+                discordMessage += " " + message[1] + ":\n";
+            }
+            client.channels.get(config.configs.channelID).send(discordMessage + message[0]);
             toQueue.shift();
         }
         sending = false;
