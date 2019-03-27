@@ -15,6 +15,11 @@ This bot can be useful for users who want to continue a RuneScape conversation
 without playing the game, people who want to make sure they don't miss part of
 a conversation, or to keep chat logs.
 
+Please note that Jagex has discontinued the RuneScape Companion app, thus
+rendering this bot useless. I may remake the app under a new system, hopefully
+I won't have to run an entire instance of the game client just to chat.
+We'll see!
+
 It is officially hosted on
 [GitHub](https://github.com/aeramos/RuneScape-Discord-Chat-Sync).
 
